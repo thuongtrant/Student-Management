@@ -1,0 +1,49 @@
+{% extends "layout/base.html" %}
+
+{% block title %} Đăng nhập - Student Management {% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-center align-items-center" style="height: 100vh; background-color: #959CA4;">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <form action="{{ url_for('login') }}" method="POST">
+
+                    <div class="d-flex justify-content-center align-items-center mb-4">
+                        <img src="{{ url_for('static', filename='images/pngwing.com.png') }}" alt="Student Management" style="height: 50px; margin-right: 10px;">
+                        <h2 class="mb-0" style="font-size: 1.5rem;">Student Management</h2>
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <select name="role" id="role" class="form-control">
+                            <option value="teacher">Giáo Viên</option>
+                            <option value="staff">Nhân Viên</option>
+                            <option value="admin">Admin</option>
+                        </select>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col">
+                            <input type="text" class="form-control" placeholder="Tài khoản" name="username" id="username" required>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col">
+                            <input type="password" class="form-control" placeholder="Mật khẩu" name="password" id="password" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group mb-3 text-center">
+                        <a href="#">Quên mật khẩu?</a>
+                    </div>
+
+                    <div class="form-group text-center">
+                        <button type="submit" class="btn w-100" style="background-color: #959CA4; color: white;">Đăng nhập</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
