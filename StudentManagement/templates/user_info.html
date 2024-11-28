@@ -1,6 +1,6 @@
 {% extends "layout/base.html" %}
 
-{% block title %} Teacher - Student Management {% endblock %}
+{% block title %} UserInfo - Student Management {% endblock %}
 
 {% block header %}
 <nav class="navbar navbar-expand-sm bg-dark navbar-dark">
@@ -10,13 +10,7 @@
                 <a class="nav-link active" href="{{ url_for('login') }}">Student Management</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="#">Quản lý học sinh</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="#">Nhập điểm</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="#">Xuất điểm</a>
+                <a class="nav-link" href="{{ url_for('user_info') }}">Thông tin cá nhân</a>
             </li>
         </ul>
         <div class="dropdown btn">
@@ -36,4 +30,12 @@
 {% endblock %}
 
 {% block content %}
+<div class="card" style="width:400px">
+  <img class="card-img-top" src="{{ url_for('static', filename='images/user_image/user_1.jpg') }}" alt="Card image">
+  <div class="card-body">
+    <h4 class="card-title">John Doe</h4>
+    <p class="card-text">Some example text.</p>
+    <a href="#" class="btn btn-primary">See Profile</a>
+  </div>
+</div>
 {% endblock %}

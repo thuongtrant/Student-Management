@@ -1,8 +1,8 @@
 from flask import render_template, request, redirect, url_for, flash
-from flask_login import login_user, logout_user, login_required, login_manager, LoginManager
+from flask_login import login_user, logout_user, login_required, LoginManager
 from StudentManagement import app, db
 from StudentManagement.models import User, UserRole
-import hashlib
+from StudentManagement.utils import check_login  # Thêm import check_login từ utils.py
 
 # Khởi tạo LoginManager
 login_manager = LoginManager()
@@ -13,6 +13,7 @@ login_manager.login_message = 'Bạn cần phải đăng nhập để truy cập
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
+
 @app.route('/')
 def home():
     return render_template('login.html')
@@ -24,29 +25,27 @@ def login():
         username = request.form.get('username')
         password = request.form.get('password')
         role = request.form.get('role')
-    #
-    #     # Tìm người dùng trong cơ sở dữ liệu
-        user = User.query.filter_by(username=username).first()
+
+        # Xác thực người dùng
+        user = check_login(username, password)
 
         if user:
-                if user.user_role.name.lower() == role:
-                    login_user(user = user)
-                    if role.upper() == 'ADMIN':
-                        return redirect(url_for('admin_dashboard'))
-                    elif role.upper() == 'TEACHER':
-                        return redirect(url_for('teacher_dashboard'))
-                    else:
-                        return redirect(url_for('employee_dashboard'))
-                else:
-                    flash('Sai quyền người dùng!', 'danger')
-
+            # Kiểm tra xem người dùng có quyền truy cập tương ứng không
+            if user.user_role.name.lower() == role.lower():
+                login_user(user)
+                # Chuyển hướng đến trang dashboard dựa trên vai trò
+                if role.upper() == 'ADMIN':
+                    return redirect(url_for('admin_dashboard'))
+                elif role.upper() == 'TEACHER':
+                    return redirect(url_for('teacher_dashboard'))
+                elif role.upper() == 'EMPLOYEE':
+                    return redirect(url_for('employee_dashboard'))
+            else:
+                flash('Sai quyền người dùng!', 'danger')
         else:
-            flash('User does not exist.', 'danger')
+            flash('Tài khoản hoặc mật khẩu sai!', 'danger')
 
-    else:
-        flash('Tài khoản hoặc mật khẩu sai!', 'danger')
-
-    return render_template('index.html')
+    return render_template('login.html')
 
 @app.route('/admin_dashboard')
 @login_required
@@ -63,6 +62,9 @@ def teacher_dashboard():
 def employee_dashboard():
     return render_template('employee_dashboard.html')
 
+@app.route('/user_info')
+def user_info():
+    return render_template('user_info.html')
 
 @app.route('/logout')
 @login_required

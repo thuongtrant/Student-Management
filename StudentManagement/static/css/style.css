@@ -4,3 +4,117 @@ body {
 .col-md-4 {
     margin: auto;
 }
+
+/* Chỉnh min-height của container để đảm bảo footer nằm cuối*/
+.container {
+    min-height: calc(100vh - 290px); /* Điều chỉnh tùy chiều cao thực tế của footer */
+    display: flex;
+    flex-direction: column;
+}
+
+/*MENU USER*/
+div.quen_mk {
+    margin-top: 1rem;
+    padding: 1rem;
+    background:lightgray;
+}
+.btn:focus {
+    box-shadow: none;
+}
+
+/* footer */
+.footer .fixed-loca {
+    padding: 1rem;
+    display: flex;
+    flex-wrap: nowrap;
+    flex-direction: column;
+}
+.footer {
+    background-color: #32383e;
+    color: #eae0e0;
+    display: flex;
+    justify-content: end;
+}
+
+.footer .footer-logo {
+    width: 10%;
+    margin-top: 0;
+    margin-right: 8%;
+}
+.footer .footer-inf {
+    width: 20%;
+    padding-left: 1rem;
+}
+.footer .footer-heading {
+    text-transform: uppercase;
+}
+.footer .footer-inf .inf {
+    padding-left: 1.125rem;
+}
+.footer .footer-inf .inf > li {
+    padding-bottom: 7px;
+    transition-property: color;
+    transition-duration: 200ms;
+    transition-timing-function: ease-in-out;
+}
+.footer .footer-inf .inf > li:hover {
+    color: rgb(193, 164, 110);
+}
+.footer .footer-contact {
+    width: 40%;
+}
+.footer .contact {
+    list-style-type: none;
+}
+.footer .contact > a {
+    text-decoration: none;
+    flex-direction: row;
+    text-align: left;
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-start;
+    margin-bottom: 10px;
+    color: #eae0e0;
+}
+.footer .contact > a:hover {
+    color: rgb(193, 164, 110);
+    transition-property: color;
+    transition-duration: 200ms;
+    transition-timing-function: ease-in-out;
+}
+.footer .contact-icon {
+    margin-right: 0.625rem;
+    width: 1.875rem;
+    font-size: 1.5625rem;
+}
+.footer .footer-follow {
+    width: 20%;
+}
+.footer .footer-follow-icon {
+    flex-direction: row;
+    display: flex;
+    width: 12.5rem;
+    justify-content: space-between;
+    text-align: justify;
+}
+.footer .footer-follow-icon > a {
+    color: #eae0e0;;
+    font-size: 1.5625rem;
+    transition-property: color;
+    transition-duration: 200ms;
+    transition-timing-function: ease-in-out;
+}
+.footer .footer-follow-icon > a:hover {
+    color: rgb(193, 164, 110);
+}
+.footer .footer-follow > p {
+    color: #eae0e0;
+    margin: 0;
+    padding-top: 15px;
+    transition-property: color;
+    transition-duration: 200ms;
+    transition-timing-function: ease-in-out;
+}
+.footer .footer-follow > p:hover {
+    color: rgb(193, 164, 110);
+}
