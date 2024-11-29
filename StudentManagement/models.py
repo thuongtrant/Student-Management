@@ -23,6 +23,8 @@ class UserRole(UserEnum):
 
 # Ví dụ model cho bảng User
 class User(BaseModel, UserMixin):
+    __tablename__ = 'user'
+    __table_args__ = {'extend_existing': True}  # Thêm dòng này
     user_role = Column(Enum(UserRole), default=UserRole.TEACHER)
     username = Column(String(50), nullable=False, unique=True)
     password = Column(String(200), nullable=False)  # Lưu mật khẩu đã hash
@@ -30,8 +32,25 @@ class User(BaseModel, UserMixin):
     def __repr__(self):
         return f'<User {self.username}>'
 
+# Tạo bảng quidinh
+class QuyDinh(db.Model):
+    __tablename__ = 'quidinh'
+    __table_args__ = {'extend_existing': True}
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    so_tuoi_toi_thieu = Column(Integer, nullable=False, default=6)
+    so_tuoi_toi_da = Column(Integer, nullable=False, default=18)
+    si_so_toi_da = Column(Integer, nullable=False, default=30)
+
+    def __repr__(self):
+        return f'<QuyDinh (Min Age: {self.so_tuoi_toi_thieu}, Max Age: {self.so_tuoi_toi_da}, Max Class Size: {self.si_so_toi_da})>'
+
 
 if __name__ == '__main__':
     with app.app_context():
         pass
-        db.create_all()
+        # db.create_all()
+
+        # QuyDinh.__table__.create(db.engine)
+        # qd = QuyDinh(so_tuoi_toi_thieu=15,so_tuoi_toi_da=20,si_so_toi_da=50)
+        # db.session.add(qd)
+        # db.session.commit()

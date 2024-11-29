@@ -1,4 +1,4 @@
-from StudentManagement.models import User
+from models import User
 import bcrypt
 
 def check_login(username, password):

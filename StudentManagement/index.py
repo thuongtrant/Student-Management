@@ -1,8 +1,10 @@
 from flask import render_template, request, redirect, url_for, flash
 from flask_login import login_user, logout_user, login_required, LoginManager
 from StudentManagement import app, db
-from StudentManagement.models import User, UserRole
-from StudentManagement.utils import check_login  # Thêm import check_login từ utils.py
+from models import User, UserRole
+from utils import check_login  # Thêm import check_login từ utils.py
+from StudentManagement.models import QuyDinh
+
 
 # Khởi tạo LoginManager
 login_manager = LoginManager()
@@ -18,6 +20,7 @@ def load_user(user_id):
 def home():
     return render_template('login.html')
 
+# Start Login
 @app.route('/', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -62,16 +65,47 @@ def teacher_dashboard():
 def employee_dashboard():
     return render_template('employee_dashboard.html')
 
+# End login
+
 @app.route('/user_info')
 def user_info():
     return render_template('user_info.html')
 
+# Start Logout
 @app.route('/logout')
 @login_required
 def logout():
     logout_user()
     flash('Đăng xuất thành công!', 'success')
     return redirect(url_for('login'))
+# End logout
+
+# Start Change_of_rules
+@app.route('/change_of_rules', methods=['GET', 'POST'])
+def change_of_rules():
+    err_mgs = ''
+
+    if request.method == 'POST':
+        so_tuoi_toi_thieu = request.form.get('so_tuoi_toi_thieu')
+        so_tuoi_toi_da = request.form.get('so_tuoi_toi_da')
+        si_so_toi_da = request.form.get('si_so_toi_da')
+
+        quidinh = QuyDinh.query.first()
+
+        if quidinh:  # Nếu đã có quy định trong CSDL
+            quidinh.so_tuoi_toi_thieu = so_tuoi_toi_thieu
+            quidinh.so_tuoi_toi_da = so_tuoi_toi_da
+            quidinh.si_so_toi_da = si_so_toi_da
+            err_mgs = 'Cập nhật quy định thành công!', 'success'
+        else:  # Nếu chưa có, tạo mới
+            quidinh = QuyDinh(so_tuoi_toi_thieu=so_tuoi_toi_thieu, so_tuoi_toi_da=so_tuoi_toi_da, si_so_toi_da=si_so_toi_da)
+            db.session.add(quidinh)
+
+        db.session.commit()  # Lưu thay đổi vào CSDL
+
+    quidinh = QuyDinh.query.first()
+    return render_template('change_of_rules.html', quidinh=quidinh, err_mgs = err_mgs)
+
 
 if __name__ == "__main__":
     app.run(debug=True)

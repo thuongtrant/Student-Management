@@ -1,0 +1,40 @@
+{% extends 'layout/base.html' %}
+
+{% block header %}
+{% include 'layout/header.html'%}
+{% endblock %}
+
+{% block content %}
+<br>
+<h2 class="mb-4">Thay Đổi Quy Định</h2>
+{% if err_msg %}
+<div class = "alert text-success">
+    <h4> {{ err_msg }}</h4>
+</div>
+{% endif %}
+<form method="POST" action="{{ url_for('change_of_rules') }}">
+    <div class="form-group">
+        <label for="tuoi_toi_thieu">Tuổi Tối Thiểu:</label>
+        <input type="number" class="form-control" id="tuoi_toi_thieu" name="so_tuoi_toi_thieu" value="" >
+    </div>
+    <div class="form-group">
+        <label for="tuoi_toi_da">Tuổi Tối Đa:</label>
+        <input type="number" class="form-control" id="tuoi_toi_da" name="so_tuoi_toi_da" value="" >
+    </div>
+    <div class="form-group">
+        <label for="si_so_toi_da">Sĩ Số Lớp Tối Đa:</label>
+        <input type="number" class="form-control" id="si_so_toi_da" name="si_so_toi_da" value="" >
+    </div>
+
+    <br>
+    <div class="form-group ">
+        <button type="submit" class="border_btn" style="background-color: #32383e; color: white;">Lưu thay đổi</button>
+    </div>
+</form>
+
+{% endblock %}
+
+{% block footer %}
+{% include 'layout/footer.html'%}
+
+{% endblock %}

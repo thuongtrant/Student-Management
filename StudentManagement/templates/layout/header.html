@@ -1,10 +1,49 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
-
-</body>
-</html>
+<nav class="navbar navbar-expand-sm bg-dark navbar-dark">
+    <div class="container-fluid">
+        <ul class="navbar-nav">
+            <li class="nav-item">
+                <a class="nav-link active" href="{{ url_for('login') }}">Student Management</a>
+            </li>
+            {% if current_user.is_authenticated and current_user.user_role.name == 'ADMIN' %}
+            <li class="nav-item">
+                <a class="nav-link" href="#">Quản lý môn học</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#">Thống kê báo cáo</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('change_of_rules') }}">Thay đổi quy định</a>
+            </li>
+            {% elif current_user.is_authenticated and current_user.user_role.name == 'TEACHER' %}
+            <li class="nav-item">
+                <a class="nav-link" href="#">Quản lý học sinh</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#">Nhập điểm</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#">Xuất điểm</a>
+            </li>
+             {% elif current_user.is_authenticated and current_user.user_role.name == 'EMPLOYEE' %}
+            <li class="nav-item">
+                <a class="nav-link" href="#">Quản lý học sinh</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#">Quản lý lớp học</a>
+            </li>
+            {% endif %}
+        </ul>
+        <div class="dropdown btn">
+            <button style="padding:0;" type="button" class="btn" data-bs-toggle="dropdown">
+                <img src="{{ url_for('static', filename='images/user.png') }}" alt="Avatar Logo" style="width:40px;">
+            </button>
+            <ul style="background:lightgrey;" class="dropdown-menu dropdown-menu-end">
+                <li><a class="dropdown-item" href="{{ url_for('user_info') }}">Thông tin cá nhân</a></li>
+                <li><a class="dropdown-item" href="#">Đổi mật khẩu</a></li>
+                <li>
+                    <hr class="dropdown-divider">
+                    <a class="dropdown-item" href="{{ url_for('login') }}">Đăng xuất</a></hr></li>
+            </ul>
+        </div>
+    </div>
+</nav>

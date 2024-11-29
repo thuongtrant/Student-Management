@@ -22,8 +22,8 @@
     {% block js %} {% endblock %}
 </head>
 <body>
+
 {% block header %}
-{% include 'layout/header.html'%}
 {% endblock %}
 
 <div class="container">
@@ -31,54 +31,6 @@
 </div>
 
 {% block footer %}
-{% include 'layout/footer.html'%}
-<div class="footer">
-    <div class="footer-logo fixed-loca">
-        <img style="margin-bottom:10px;" src="{{ url_for('static', filename='images/pngwing.com.png') }}" alt="Logo">
-        <h3 class="footer-heading";">student management</h3>
-    </div>
-    <div class="footer-inf fixed-loca">
-        <h3 class="footer-heading" style="margin-bottom:10px;">thông tin</h3>
-        <ul class="inf">
-            <li>Giới thiệu</li>
-            <li>Tin tức - Sự kiện</li>
-            <li>Tuyển dụng</li>
-        </ul>
-    </div>
-    <div class="footer-contact fixed-loca">
-        <h3 class="footer-heading">liên hệ</h3>
-        <div class="contact">
-            <a href="#">
-                <div class="contact-icon">
-                    <i class="fa-solid fa-earth-americas"></i>
-                </div>
-                <div>Khu dân cư Nhơn Đức, Huyện Nhà Bè, Thành phố Hồ Chí Minh, Việt Nam</div>
-            </a>
-            <a href="#">
-                <div class="contact-icon">
-                    <i class="fa-solid fa-square-phone"></i>
-                </div>
-                <div>Tel: +84 28 3519 2727</div>
-            </a>
-            <a href="#">
-                <div class="contact-icon">
-                    <i class="fa-solid fa-envelope"></i>
-                </div>
-                <div>trungtamhttt@ou.edu.vn</div>
-            </a>
-        </div>
-    </div>
-    <div class="footer-follow fixed-loca">
-        <h3 class="footer-heading">theo dõi</h3>
-        <div class="footer-follow-icon">
-            <a href="#"><i class="fa-brands fa-facebook-f"></i></a>
-            <a href="#"><i class="fa-brands fa-instagram"></i></a>
-            <a href="#"><i class="fa-brands fa-twitter"></i></a>
-            <a href="#"><i class="fa-brands fa-youtube"></i></a>
-        </div>
-        <p class="footer-heading">chính sách bảo mật</p>
-    </div>
-</div>
 {% endblock %}
 
 </body>
