@@ -127,6 +127,35 @@ def manage_subjects():
     return render_template('subject_management.html', subjects=subjects)
     # return render_template('subject_management.html')
 
+@app.route('/edit_subject/<int:subject_id>', methods=['GET'])
+def edit_subject(subject_id):
+    subject = Subject.query.get(subject_id)
+    if not subject:
+        flash('Môn học không tồn tại!', 'danger')
+        return redirect(url_for('manage_subjects'))
+
+    return render_template('edit_subject.html', subject=subject)
+@app.route('/update_subject/<int:subject_id>', methods=['POST'])
+def update_subject(subject_id):
+    subject = Subject.query.get(subject_id)
+    if not subject:
+        flash('Môn học không tồn tại!', 'danger')
+        return redirect(url_for('manage_subjects'))
+
+    # Lấy dữ liệu từ form
+    subject.name = request.form.get('subject_name')
+    subject.code = request.form.get('subject_code')
+    subject.description = request.form.get('description')
+    subject.teacher = request.form.get('teacher')
+
+    try:
+        db.session.commit()
+        flash('Cập nhật môn học thành công!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash('Có lỗi xảy ra khi cập nhật môn học!', 'danger')
+
+    return redirect(url_for('manage_subjects'))
 
 if __name__ == "__main__":
     app.run(debug=True)

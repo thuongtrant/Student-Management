@@ -63,7 +63,7 @@
                 <td>{{ subject.teacher }}</td>
                 <td>
                     <!-- Nút Sửa -->
-                    <button class="btn edit-subject background-btn" style="color:white" data-id="{{ subject.id }}" data-toggle="modal" data-target="#editModal">Sửa</button>
+                    <a href="{{ url_for('edit_subject', subject_id=subject.id) }}" class="btn background-btn" style="color:white">Sửa</a>
 
                     <!-- Nút Xóa -->
                     <button class="btn btn-danger delete-subject" data-id="{{ subject.id }}">Xóa</button>
@@ -74,6 +74,8 @@
         </table>
     </div>
 </div>
+
+
 {% endblock %}
 
 {% block footer %}

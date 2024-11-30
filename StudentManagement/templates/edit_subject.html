@@ -1,0 +1,40 @@
+{% extends 'layout/base.html' %}
+
+{% block title %} Sửa môn học {% endblock %}
+
+{% block header %}
+{% include 'layout/header.html'%}
+{% endblock %}
+
+{% block content %}
+<br>
+<div class="row">
+    <div class="col-md-6 offset-md-3">
+        <h2 class="text-center">Sửa thông tin môn học</h2>
+        <form method="post" action="{{ url_for('update_subject', subject_id=subject.id) }}">
+            <div class="form-group">
+                <label for="subject_name">Tên môn học</label>
+                <input type="text" class="form-control" id="subject_name" name="subject_name" value="{{ subject.name }}" required>
+            </div>
+            <div class="form-group">
+                <label for="subject_code">Mã môn học</label>
+                <input type="text" class="form-control" id="subject_code" name="subject_code" value="{{ subject.code }}" required>
+            </div>
+            <div class="form-group">
+                <label for="description">Mô tả</label>
+                <textarea class="form-control" id="description" name="description">{{ subject.description }}</textarea>
+            </div>
+            <div class="form-group">
+                <label for="teacher">Giáo viên</label>
+                <input type="text" class="form-control" id="teacher" name="teacher" value="{{ subject.teacher }}">
+            </div>
+            <br>
+            <button type="submit" class="btn background-btn border_btn" style="color :white">Lưu thay đổi</button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block footer %}
+{% include 'layout/footer.html'%}
+{% endblock %}
