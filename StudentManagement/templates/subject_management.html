@@ -1,0 +1,81 @@
+
+
+
+{% extends 'layout/base.html' %}
+
+{% block title %} Quản lý môn học {% endblock %}
+
+{% block header %}
+{% include 'layout/header.html'%}
+{% endblock %}
+
+{% block content %}
+<br>
+<div class="row">
+    <!-- Form thêm môn học -->
+    <div class="col-md-6">
+        <h2 class="text-center">Thêm môn học</h2>
+        <form method="post" action="{{ url_for('manage_subjects') }}" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="subject_name">Tên môn học</label>
+                <input type="text" class="form-control" id="subject_name" name="subject_name" placeholder="Ví dụ: Toán"
+                       required>
+            </div>
+            <div class="form-group">
+                <label for="subject_code">Mã môn học</label>
+                <input type="text" class="form-control" id="subject_code" name="subject_code" placeholder="Ví dụ: MH01"
+                       required>
+            </div>
+            <div class="form-group">
+                <label for="description">Mô tả</label>
+                <input type="text" class="form-control" id="description" name="description" placeholder="Mô tả môn học">
+            </div>
+            <div class="form-group">
+                <label for="teacher">Giáo viên</label>
+                <input type="text" class="form-control" id="teacher" name="teacher"
+                       placeholder="Tên giáo viên giảng dạy">
+            </div>
+            <br>
+            <div class="form-group">
+                <button type="submit" class="border_btn" style="background-color: #32383e; color: white;">Thêm môn học
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Danh sách môn học -->
+    <div class="col-md-6">
+        <h2 class="text-center">Danh sách môn học</h2>
+        <table class="table table-bordered">
+            <thead>
+            <tr>
+                <th>Mã</th>
+                <th>Tên môn học</th>
+                <th>Giáo viên</th>
+                <th>Thao tác</th> <!-- Cột mới -->
+            </tr>
+            </thead>
+            <tbody>
+            {% for subject in subjects %}
+            <tr id="subject-{{ subject.id }}">
+                <td>{{ subject.code }}</td>
+                <td>{{ subject.name }}</td>
+                <td>{{ subject.teacher }}</td>
+                <td>
+                    <!-- Nút Sửa -->
+                    <button class="btn edit-subject background-btn" style="color:white" data-id="{{ subject.id }}" data-toggle="modal" data-target="#editModal">Sửa</button>
+
+                    <!-- Nút Xóa -->
+                    <button class="btn btn-danger delete-subject" data-id="{{ subject.id }}">Xóa</button>
+                </td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block footer %}
+{% include 'layout/footer.html'%}
+{% endblock %}

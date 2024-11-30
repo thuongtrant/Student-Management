@@ -32,6 +32,29 @@ class User(BaseModel, UserMixin):
     def __repr__(self):
         return f'<User {self.username}>'
 
+# #Tạo bảng học sinh
+# class Student(BaseModel):
+#     __tablename__ = 'student'
+#
+#     # Các trường riêng của Student, có thể kế thừa từ BaseModel
+#     student_id = Column(Integer, nullable=False)
+#
+#     def __repr__(self):
+#         return f'<Student {self.first_name} {self.last_name}>'
+
+#Tạo bảng môn học
+class Subject(db.Model):
+    __tablename__ = 'monhoc'
+    __table_args__ = {'extend_existing': True}
+    id = db.Column(db.Integer, primary_key=True)
+    code = db.Column(db.String(10), nullable=False, unique=True)
+    name = db.Column(db.String(100), nullable=False)
+    description = db.Column(db.String(255))
+    teacher = db.Column(db.String(100), nullable=False)
+
+    def __repr__(self):
+        return f'<Subject {self.name}>'
+
 # Tạo bảng quidinh
 class QuyDinh(db.Model):
     __tablename__ = 'quidinh'
@@ -54,3 +77,5 @@ if __name__ == '__main__':
         # qd = QuyDinh(so_tuoi_toi_thieu=15,so_tuoi_toi_da=20,si_so_toi_da=50)
         # db.session.add(qd)
         # db.session.commit()
+
+        # Subject.__table__.create(db.engine)

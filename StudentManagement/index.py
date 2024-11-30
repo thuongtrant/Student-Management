@@ -3,7 +3,8 @@ from flask_login import login_user, logout_user, login_required, LoginManager
 from StudentManagement import app, db
 from models import User, UserRole
 from utils import check_login  # Thêm import check_login từ utils.py
-from StudentManagement.models import QuyDinh
+from StudentManagement.models import QuyDinh, Subject
+from flask import jsonify
 
 
 # Khởi tạo LoginManager
@@ -105,6 +106,26 @@ def change_of_rules():
 
     quidinh = QuyDinh.query.first()
     return render_template('change_of_rules.html', quidinh=quidinh, err_mgs = err_mgs)
+
+# Môn học
+@app.route('/subject_management', methods=['GET', 'POST'])
+def manage_subjects():
+    if request.method == 'POST':
+        # Lấy dữ liệu từ form
+        subject_name = request.form.get('subject_name')
+        subject_code = request.form.get('subject_code')
+        description = request.form.get('description')
+        teacher = request.form.get('teacher')
+
+        # Thêm môn học vào cơ sở dữ liệu
+        new_subject = Subject(name=subject_name, code=subject_code, description=description, teacher=teacher)
+        db.session.add(new_subject)
+        db.session.commit()
+        return redirect(url_for('manage_subjects'))
+
+    subjects = Subject.query.all()  # Lấy tất cả môn học từ DB
+    return render_template('subject_management.html', subjects=subjects)
+    # return render_template('subject_management.html')
 
 
 if __name__ == "__main__":
