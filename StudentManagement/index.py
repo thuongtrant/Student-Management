@@ -1,4 +1,4 @@
-from flask import render_template, request, redirect, url_for, flash
+from flask import render_template, request, redirect, url_for, flash, session
 from flask_login import login_user, logout_user, login_required, LoginManager
 from StudentManagement import app, db
 from models import User, UserRole
@@ -135,6 +135,7 @@ def edit_subject(subject_id):
         return redirect(url_for('manage_subjects'))
 
     return render_template('edit_subject.html', subject=subject)
+
 @app.route('/update_subject/<int:subject_id>', methods=['POST'])
 def update_subject(subject_id):
     subject = Subject.query.get(subject_id)
@@ -156,6 +157,19 @@ def update_subject(subject_id):
         flash('Có lỗi xảy ra khi cập nhật môn học!', 'danger')
 
     return redirect(url_for('manage_subjects'))
+
+
+@app.route('/api/delete-subject/<int:subject_id>', methods=['DELETE'])
+def delete_subject(subject_id):
+    subject = Subject.query.get(subject_id)
+
+    if subject:
+        db.session.delete(subject)
+        db.session.commit()
+        return jsonify({'success': True, 'message': 'Môn học đã được xóa thành công!'})
+    else:
+        return jsonify({'success': False, 'message': 'Không tìm thấy môn học!'}), 404
+
 
 if __name__ == "__main__":
     app.run(debug=True)
