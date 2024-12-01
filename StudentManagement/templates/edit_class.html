@@ -1,0 +1,48 @@
+{% extends 'layout/base.html' %}
+
+{% block title %} Sửa lớp học {% endblock %}
+
+{% block header %}
+{% include 'layout/header.html'%}
+{% endblock %}
+
+{% block content %}
+<br>
+<div class="row">
+    <div class="col-md-6 offset-md-3">
+        <h2 class="text-center">Sửa thông tin lớp học</h2>
+        <form method="post" action="{{ url_for('update_class', class_id=classById.id) }}">
+            <div class="form-group">
+                <label for="class_name">Tên lớp học</label>
+                <input type="text" class="form-control" id="class_name" name="class_name" value="{{ classById.name }}" required>
+            </div>
+            <div class="form-group">
+                <label for="class_code">Mã lớp học</label>
+                <input type="text" class="form-control" id="class_code" name="class_code" value="{{ classById.code }}" required>
+            </div>
+             <div class="form-group">
+                <label for="class_grade">Khối</label>
+                <select class="form-control" id="class_grade" name="class_grade" required>
+                    <option value="10">Khối 10</option>
+                    <option value="11">Khối 11</option>
+                    <option value="12">Khối 12</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="description">Mô tả</label>
+                <textarea class="form-control" id="description" name="description">{{ classById.description }}</textarea>
+            </div>
+            <div class="form-group">
+                <label for="teacher">Giáo viên</label>
+                <input type="text" class="form-control" id="teacher" name="teacher" value="{{ classById.teacher }}">
+            </div>
+            <br>
+            <button type="submit" class="btn background-btn border_btn" style="color :white">Lưu thay đổi</button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block footer %}
+{% include 'layout/footer.html'%}
+{% endblock %}

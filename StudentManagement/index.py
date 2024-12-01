@@ -2,7 +2,7 @@ from flask import render_template, request, redirect, url_for, flash, session
 from flask_login import login_user, logout_user, login_required, LoginManager
 from StudentManagement import app, db
 from models import User, UserRole
-from utils import check_login  # Thêm import check_login từ utils.py
+from utils import check_login, get_subject_by_id  # Thêm import check_login từ utils.py
 from StudentManagement.models import QuyDinh, Subject, Class
 from flask import jsonify
 
@@ -108,6 +108,8 @@ def change_of_rules():
     return render_template('change_of_rules.html', quidinh=quidinh, err_mgs = err_mgs)
 
 # Môn học
+
+# Thêm mới môn học, hiển thị danh sách
 @app.route('/subject_management', methods=['GET', 'POST'])
 def manage_subjects():
     if request.method == 'POST':
@@ -127,6 +129,7 @@ def manage_subjects():
     return render_template('subject_management.html', subjects=subjects)
     # return render_template('subject_management.html')
 
+# Lấy dữ liệu để hiện thị trong trang sửa môn học
 @app.route('/edit_subject/<int:subject_id>', methods=['GET'])
 def edit_subject(subject_id):
     subject = Subject.query.get(subject_id)
@@ -136,6 +139,7 @@ def edit_subject(subject_id):
 
     return render_template('edit_subject.html', subject=subject)
 
+# Tiến hành sửa môn học
 @app.route('/update_subject/<int:subject_id>', methods=['POST'])
 def update_subject(subject_id):
     subject = Subject.query.get(subject_id)
@@ -190,6 +194,51 @@ def class_management():
     classes = Class.query.all()  # Lấy tất cả môn học từ DB
     return render_template('class_management.html', classes=classes)
     # return render_template('class_management.html')
+
+# Lấy dữ liệu để hiện thị trong trang sửa lớp học
+@app.route('/edit_class/<int:class_id>', methods=['GET'])
+def edit_class(class_id):
+    classById = Class.query.get(class_id)
+    if not classById:
+        flash('Lớp học không tồn tại!', 'danger')
+        return redirect(url_for('class_management'))
+
+    return render_template('edit_class.html', classById=classById)
+
+# Tiến hành sửa lớp học
+@app.route('/update_class/<int:class_id>', methods=['POST'])
+def update_class(class_id):
+    classById = Class.query.get(class_id)
+    if not classById:
+        flash('Lớp học không tồn tại!', 'danger')
+        return redirect(url_for('class_management'))
+
+    # Lấy dữ liệu từ form
+    classById.name = request.form.get('class_name')
+    classById.code = request.form.get('class_code')
+    classById.grade = request.form.get('class_grade')
+    classById.description = request.form.get('description')
+    classById.teacher = request.form.get('teacher')
+
+    try:
+        db.session.commit()
+        flash('Cập nhật lớp học thành công!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash('Có lỗi xảy ra khi cập nhật lớp học!', 'danger')
+
+    return redirect(url_for('class_management'))
+
+@app.route('/api/delete-class/<int:class_id>', methods=['DELETE'])
+def delete_class(class_id):
+    classById = Class.query.get(class_id)
+
+    if classById:
+        db.session.delete(classById)
+        db.session.commit()
+        return jsonify({'success': True, 'message': 'Lớp học đã được xóa thành công!'})
+    else:
+        return jsonify({'success': False, 'message': 'Không tìm thấy lớp học!'}), 404
 
 
 if __name__ == "__main__":

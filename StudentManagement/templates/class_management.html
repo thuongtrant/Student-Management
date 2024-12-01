@@ -2,6 +2,7 @@
 
 {% block title %} Quản lý lớp học {% endblock %}
 {% block js %}
+<script src="{{ url_for('static', filename='js/delete_class.js') }}"></script>
 {% endblock %}
 
 {% block header %}
@@ -26,13 +27,13 @@
                        required>
             </div>
             <div class="form-group">
-            <label for="class_grade">Khối</label>
-            <select class="form-control" id="class_grade" name="class_grade" required>
-                <option value="10">Khối 10</option>
-                <option value="11">Khối 11</option>
-                <option value="12">Khối 12</option>
-            </select>
-        </div>
+                <label for="class_grade">Khối</label>
+                <select class="form-control" id="class_grade" name="class_grade" required>
+                    <option value="10">Khối 10</option>
+                    <option value="11">Khối 11</option>
+                    <option value="12">Khối 12</option>
+                </select>
+            </div>
             <div class="form-group">
                 <label for="description">Mô tả</label>
                 <input type="text" class="form-control" id="description" name="description" placeholder="Mô tả môn học">
@@ -72,10 +73,11 @@
                 <td>{{ class.teacher }}</td>
                 <td>
                     <!-- Nút Sửa -->
-                    <a href="#" class="btn background-btn" style="color:white">Sửa</a>
+                    <a href="{{ url_for('edit_class', class_id=class.id) }}" class="btn background-btn"
+                       style="color:white">Sửa</a>
 
                     <!-- Nút Xóa -->
-                <button class="btn btn-danger" style="color:white">Xóa</button>
+                <button class="btn btn-danger" onclick="delete_class({{ class.id }})" style="color:white">Xóa</button>
 
                 </td>
             </tr>

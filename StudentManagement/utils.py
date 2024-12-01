@@ -1,4 +1,4 @@
-from models import User
+from models import User, Subject
 import bcrypt
 
 def check_login(username, password):
@@ -13,3 +13,7 @@ def check_login(username, password):
 
 def get_user_by_id(user_id):
     return User.query.get(user_id)
+
+def get_subject_by_id(subject_id):
+    return Subject.query.get(subject_id)
+
