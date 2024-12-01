@@ -1,0 +1,93 @@
+{% extends 'layout/base.html' %}
+
+{% block title %} Quản lý lớp học {% endblock %}
+{% block js %}
+{% endblock %}
+
+{% block header %}
+{% include 'layout/header.html'%}
+{% endblock %}
+
+{% block content %}
+<br>
+<div class="row">
+    <!-- Form thêm lớp học -->
+    <div class="col-md-6">
+        <h2 class="text-center">Thêm lớp học</h2>
+        <form method="post" action="{{ url_for('class_management') }}" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="class_name">Tên lớp học</label>
+                <input type="text" class="form-control" id="class_name" name="class_name" placeholder="Ví dụ: A"
+                       required>
+            </div>
+            <div class="form-group">
+                <label for="class_code">Mã lớp học</label>
+                <input type="text" class="form-control" id="class_code" name="class_code" placeholder="Ví dụ: L01"
+                       required>
+            </div>
+            <div class="form-group">
+            <label for="class_grade">Khối</label>
+            <select class="form-control" id="class_grade" name="class_grade" required>
+                <option value="10">Khối 10</option>
+                <option value="11">Khối 11</option>
+                <option value="12">Khối 12</option>
+            </select>
+        </div>
+            <div class="form-group">
+                <label for="description">Mô tả</label>
+                <input type="text" class="form-control" id="description" name="description" placeholder="Mô tả môn học">
+            </div>
+            <div class="form-group">
+                <label for="teacher">Giáo viên chủ nhiệm</label>
+                <input type="text" class="form-control" id="teacher" name="teacher"
+                       placeholder="Tên giáo viên giảng dạy">
+            </div>
+            <br>
+            <div class="form-group">
+                <button type="submit" class="border_btn" style="background-color: #32383e; color: white;">Thêm lớp học
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Danh sách lớp học -->
+    <div class="col-md-6">
+        <h2 class="text-center">Danh sách lớp học</h2>
+        <table class="table table-bordered">
+            <thead>
+            <tr>
+                <th>Mã</th>
+                <th>Tên lớp học</th>
+                <th>Khối</th>
+                <th>Giáo viên</th>
+                <th>Thao tác</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for class in classes %}
+            <tr id="class-{{ class.id }}">
+                <td>{{ class.code }}</td>
+                <td>{{ class.name }}</td>
+                <th>{{ class.grade }}</th> <!-- Cột mới -->
+                <td>{{ class.teacher }}</td>
+                <td>
+                    <!-- Nút Sửa -->
+                    <a href="#" class="btn background-btn" style="color:white">Sửa</a>
+
+                    <!-- Nút Xóa -->
+                <button class="btn btn-danger" style="color:white">Xóa</button>
+
+                </td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+
+{% endblock %}
+
+{% block footer %}
+{% include 'layout/footer.html'%}
+{% endblock %}

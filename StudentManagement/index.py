@@ -3,7 +3,7 @@ from flask_login import login_user, logout_user, login_required, LoginManager
 from StudentManagement import app, db
 from models import User, UserRole
 from utils import check_login  # Thêm import check_login từ utils.py
-from StudentManagement.models import QuyDinh, Subject
+from StudentManagement.models import QuyDinh, Subject, Class
 from flask import jsonify
 
 
@@ -169,6 +169,27 @@ def delete_subject(subject_id):
         return jsonify({'success': True, 'message': 'Môn học đã được xóa thành công!'})
     else:
         return jsonify({'success': False, 'message': 'Không tìm thấy môn học!'}), 404
+
+# Lớp học
+@app.route('/class_management', methods=['GET', 'POST'])
+def class_management():
+    if request.method == 'POST':
+        # Lấy dữ liệu từ form
+        class_name = request.form.get('class_name')
+        class_code = request.form.get('class_code')
+        grade = request.form.get('class_grade')  # Lấy thông tin khối từ form
+        description = request.form.get('description')
+        teacher = request.form.get('teacher')
+
+        # Thêm môn học vào cơ sở dữ liệu
+        new_class = Class(name=class_name, code=class_code, grade = grade, description=description, teacher=teacher)
+        db.session.add(new_class)
+        db.session.commit()
+        return redirect(url_for('class_management'))
+
+    classes = Class.query.all()  # Lấy tất cả môn học từ DB
+    return render_template('class_management.html', classes=classes)
+    # return render_template('class_management.html')
 
 
 if __name__ == "__main__":

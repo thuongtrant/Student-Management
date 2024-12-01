@@ -55,6 +55,19 @@ class Subject(db.Model):
     def __repr__(self):
         return f'<Subject {self.name}>'
 
+# Tạo bảng lớp học
+class Class(db.Model):
+    __tablename__ = 'lophoc'
+    __table_args__ = {'extend_existing': True}
+    id = db.Column(db.Integer, primary_key=True)
+    code = db.Column(db.String(10), nullable=False, unique=True)
+    name = db.Column(db.String(100), nullable=False)
+    description = db.Column(db.String(255))
+    teacher = db.Column(db.String(100), nullable=False)
+    grade = db.Column(db.String(2), nullable=False)
+    def __repr__(self):
+        return f'<Subject {self.name}>'
+
 # Tạo bảng quidinh
 class QuyDinh(db.Model):
     __tablename__ = 'quidinh'
@@ -79,3 +92,4 @@ if __name__ == '__main__':
         # db.session.commit()
 
         # Subject.__table__.create(db.engine)
+        # Class.__table__.create(db.engine)
