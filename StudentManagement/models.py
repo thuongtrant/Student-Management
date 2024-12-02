@@ -14,7 +14,7 @@ class BaseModel(db.Model):
     email = Column(String(100), nullable=True)
     image_link = Column(String(255), nullable=True)
     gender = Column(String(10), nullable=True)
-    birth_year = Column(Integer, nullable=True)
+    birth_day = Column(DATETIME, nullable=True)
 
 class UserRole(UserEnum):
     ADMIN = "ADMIN"

@@ -2,40 +2,35 @@
 
 {% block title %} UserInfo - Student Management {% endblock %}
 
-{% block header %}
-<nav class="navbar navbar-expand-sm bg-dark navbar-dark">
-    <div class="container-fluid">
-        <ul class="navbar-nav">
-            <li class="nav-item">
-                <a class="nav-link active" href="{{ url_for('login') }}">Student Management</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="{{ url_for('user_info') }}">Thông tin cá nhân</a>
-            </li>
-        </ul>
-        <div class="dropdown btn">
-            <button style="padding:0;" type="button" class="btn" data-bs-toggle="dropdown">
-                <img src="{{ url_for('static', filename='images/user.png') }}" alt="Avatar Logo" style="width:40px;">
-            </button>
-            <ul style="background:lightgrey;" class="dropdown-menu dropdown-menu-end">
-                <li><a class="dropdown-item" href="{{ url_for('user_info') }}">Thông tin cá nhân</a></li>
-                <li><a class="dropdown-item" href="#">Đổi mật khẩu</a></li>
-                <li>
-                    <hr class="dropdown-divider">
-                    <a class="dropdown-item" href="{{ url_for('login') }}">Đăng xuất</a></hr></li>
-            </ul>
+{% block content %}
+<div class="user_info">
+    <div class="card" style="width:15%;">
+        <img class="card-img-top" src="{{ url_for('static', filename=user.image_link) }}" alt="Card image">
+        <div style="margin:auto;" class="card-body">
+            <p class="card-text end">{{user.username}}</p>
         </div>
     </div>
-</nav>
-{% endblock %}
-
-{% block content %}
-<div class="card" style="width:400px">
-  <img class="card-img-top" src="{{ url_for('static', filename='images/user_image/user_1.jpg') }}" alt="Card image">
-  <div class="card-body">
-    <h4 class="card-title">John Doe</h4>
-    <p class="card-text">Some example text.</p>
-    <a href="#" class="btn btn-primary">See Profile</a>
-  </div>
+    <ul style="width:75%;background:white;" class="list-group list-group-flush">
+        <h2 style="margin:2% auto 0;">THÔNG TIN NGƯỜI DÙNG</h2>
+        <li class="list-group-item">
+            <div class="row">
+                <div class="col-md-6">Họ và tên: <b>{{user.last_name}} {{user.first_name}}</b></div>
+                <div class="col-md-6">User id: <b>{{user.id}}</b></div>
+            </div>
+        </li>
+        <li class="list-group-item">
+            <div class="row">
+                <div class="col-md-6">Ngày sinh: <b>{{formatted_date}}</b></div>
+                <div class="col-md-6">Email: <b>{{user.email}}</b></div>
+            </div>
+        </li>
+        <li class="list-group-item">
+            <div class="row">
+                <div class="col-md-6">Giới tính: <b>{{user.gender}}</b></div>
+                <div class="col-md-6">Số điện thoại: <b>{{user.phone}}</b></div>
+            </div>
+        </li>
+        <b style="margin: 2%;">Vui lòng liên hệ trực tiếp Trung tâm Quản lý Hệ thống thông tin/gửi mail <a style="color:#32383e;" href="mailto:trungtamhttt@ou.edu.vn">trungtamhttt@ou.edu.vn</a> khi có sai sót thông tin!</b>
+    </ul>
 </div>
 {% endblock %}
