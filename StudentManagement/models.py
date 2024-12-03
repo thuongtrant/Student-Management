@@ -62,9 +62,10 @@ class Class(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     code = db.Column(db.String(10), nullable=False, unique=True)
     name = db.Column(db.String(100), nullable=False)
+    student_count = db.Column(db.Integer, nullable=False)
+    grade = db.Column(db.String(2), nullable=False)
     description = db.Column(db.String(255))
     teacher = db.Column(db.String(100), nullable=False)
-    grade = db.Column(db.String(2), nullable=False)
     def __repr__(self):
         return f'<Subject {self.name}>'
 

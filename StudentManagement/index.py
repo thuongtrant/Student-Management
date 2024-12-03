@@ -108,7 +108,6 @@ def change_of_rules():
     return render_template('change_of_rules.html', quidinh=quidinh, err_mgs = err_mgs)
 
 # Môn học
-
 # Thêm mới môn học, hiển thị danh sách
 @app.route('/subject_management', methods=['GET', 'POST'])
 def manage_subjects():
@@ -181,14 +180,23 @@ def class_management():
         # Lấy dữ liệu từ form
         class_name = request.form.get('class_name')
         class_code = request.form.get('class_code')
-        grade = request.form.get('class_grade')  # Lấy thông tin khối từ form
+        grade = request.form.get('class_grade')
+        student_count = int(request.form.get('student_count'))
         description = request.form.get('description')
         teacher = request.form.get('teacher')
 
+        # Lấy quy định về sĩ số tối đa
+        quy_dinh = QuyDinh.query.first()  # Giả định chỉ có một bản ghi quy định
+        if student_count > quy_dinh.si_so_toi_da:
+            flash(f'Sĩ số lớp không được vượt quá {quy_dinh.si_so_toi_da}', 'danger')
+            return redirect(url_for('class_management'))
         # Thêm môn học vào cơ sở dữ liệu
-        new_class = Class(name=class_name, code=class_code, grade = grade, description=description, teacher=teacher)
+        new_class = Class(name=class_name, code=class_code, grade = grade,
+                          student_count=student_count, description=description,
+                          teacher=teacher)
         db.session.add(new_class)
         db.session.commit()
+        flash('Lớp học đã được thêm thành công!', 'success')
         return redirect(url_for('class_management'))
 
     classes = Class.query.all()  # Lấy tất cả môn học từ DB
