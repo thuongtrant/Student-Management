@@ -3,7 +3,7 @@ from flask_login import login_user, logout_user, login_required, LoginManager
 from StudentManagement import app, db
 from models import User, UserRole
 from utils import check_login, get_subject_by_id  # Thêm import check_login từ utils.py
-from StudentManagement.models import QuyDinh, Subject, Class
+from StudentManagement.models import Rule, Subject, SchoolClass
 from flask import jsonify
 
 
@@ -91,7 +91,7 @@ def change_of_rules():
         so_tuoi_toi_da = request.form.get('so_tuoi_toi_da')
         si_so_toi_da = request.form.get('si_so_toi_da')
 
-        quidinh = QuyDinh.query.first()
+        quidinh = Rule.query.first()
 
         if quidinh:  # Nếu đã có quy định trong CSDL
             quidinh.so_tuoi_toi_thieu = so_tuoi_toi_thieu
@@ -99,12 +99,12 @@ def change_of_rules():
             quidinh.si_so_toi_da = si_so_toi_da
             err_mgs = 'Cập nhật quy định thành công!', 'success'
         else:  # Nếu chưa có, tạo mới
-            quidinh = QuyDinh(so_tuoi_toi_thieu=so_tuoi_toi_thieu, so_tuoi_toi_da=so_tuoi_toi_da, si_so_toi_da=si_so_toi_da)
+            quidinh = Rule(so_tuoi_toi_thieu=so_tuoi_toi_thieu, so_tuoi_toi_da=so_tuoi_toi_da, si_so_toi_da=si_so_toi_da)
             db.session.add(quidinh)
 
         db.session.commit()  # Lưu thay đổi vào CSDL
 
-    quidinh = QuyDinh.query.first()
+    quidinh = Rule.query.first()
     return render_template('change_of_rules.html', quidinh=quidinh, err_mgs = err_mgs)
 
 # Môn học
@@ -186,12 +186,12 @@ def class_management():
         teacher = request.form.get('teacher')
 
         # Lấy quy định về sĩ số tối đa
-        quy_dinh = QuyDinh.query.first()  # Giả định chỉ có một bản ghi quy định
+        quy_dinh = Rule.query.first()  # Giả định chỉ có một bản ghi quy định
         if student_count > quy_dinh.si_so_toi_da:
             flash(f'Sĩ số lớp không được vượt quá {quy_dinh.si_so_toi_da}', 'danger')
             return redirect(url_for('class_management'))
         # Thêm môn học vào cơ sở dữ liệu
-        new_class = Class(name=class_name, code=class_code, grade = grade,
+        new_class = SchoolClass(name=class_name, code=class_code, grade = grade,
                           student_count=student_count, description=description,
                           teacher=teacher)
         db.session.add(new_class)
@@ -199,14 +199,14 @@ def class_management():
         flash('Lớp học đã được thêm thành công!', 'success')
         return redirect(url_for('class_management'))
 
-    classes = Class.query.all()  # Lấy tất cả môn học từ DB
+    classes = SchoolClass.query.all()  # Lấy tất cả môn học từ DB
     return render_template('class_management.html', classes=classes)
     # return render_template('class_management.html')
 
 # Lấy dữ liệu để hiện thị trong trang sửa lớp học
 @app.route('/edit_class/<int:class_id>', methods=['GET'])
 def edit_class(class_id):
-    classById = Class.query.get(class_id)
+    classById = SchoolClass.query.get(class_id)
     if not classById:
         flash('Lớp học không tồn tại!', 'danger')
         return redirect(url_for('class_management'))
@@ -216,7 +216,7 @@ def edit_class(class_id):
 # Tiến hành sửa lớp học
 @app.route('/update_class/<int:class_id>', methods=['POST'])
 def update_class(class_id):
-    classById = Class.query.get(class_id)
+    classById = SchoolClass.query.get(class_id)
     if not classById:
         flash('Lớp học không tồn tại!', 'danger')
         return redirect(url_for('class_management'))
@@ -239,7 +239,7 @@ def update_class(class_id):
 
 @app.route('/api/delete-class/<int:class_id>', methods=['DELETE'])
 def delete_class(class_id):
-    classById = Class.query.get(class_id)
+    classById = SchoolClass.query.get(class_id)
 
     if classById:
         db.session.delete(classById)

@@ -44,7 +44,7 @@ class User(BaseModel, UserMixin):
 
 #Tạo bảng môn học
 class Subject(db.Model):
-    __tablename__ = 'monhoc'
+    __tablename__ = 'subject'
     __table_args__ = {'extend_existing': True}
     id = db.Column(db.Integer, primary_key=True)
     code = db.Column(db.String(10), nullable=False, unique=True)
@@ -56,8 +56,8 @@ class Subject(db.Model):
         return f'<Subject {self.name}>'
 
 # Tạo bảng lớp học
-class Class(db.Model):
-    __tablename__ = 'lophoc'
+class SchoolClass(db.Model):
+    __tablename__ = 'schoolclass'
     __table_args__ = {'extend_existing': True}
     id = db.Column(db.Integer, primary_key=True)
     code = db.Column(db.String(10), nullable=False, unique=True)
@@ -67,11 +67,11 @@ class Class(db.Model):
     description = db.Column(db.String(255))
     teacher = db.Column(db.String(100), nullable=False)
     def __repr__(self):
-        return f'<Subject {self.name}>'
+        return f'<SchoolClass {self.name}>'
 
 # Tạo bảng quidinh
-class QuyDinh(db.Model):
-    __tablename__ = 'quidinh'
+class Rule(db.Model):
+    __tablename__ = 'rule'
     __table_args__ = {'extend_existing': True}
     id = Column(Integer, primary_key=True, autoincrement=True)
     so_tuoi_toi_thieu = Column(Integer, nullable=False, default=6)
@@ -79,7 +79,7 @@ class QuyDinh(db.Model):
     si_so_toi_da = Column(Integer, nullable=False, default=30)
 
     def __repr__(self):
-        return f'<QuyDinh (Min Age: {self.so_tuoi_toi_thieu}, Max Age: {self.so_tuoi_toi_da}, Max Class Size: {self.si_so_toi_da})>'
+        return f'<Rule (Min Age: {self.so_tuoi_toi_thieu}, Max Age: {self.so_tuoi_toi_da}, Max Class Size: {self.si_so_toi_da})>'
 
 
 if __name__ == '__main__':
@@ -87,10 +87,10 @@ if __name__ == '__main__':
         pass
         # db.create_all()
 
-        # QuyDinh.__table__.create(db.engine)
-        # qd = QuyDinh(so_tuoi_toi_thieu=15,so_tuoi_toi_da=20,si_so_toi_da=50)
+        # Rule.__table__.create(db.engine)
+        # qd = Rule(so_tuoi_toi_thieu=15,so_tuoi_toi_da=20,si_so_toi_da=40)
         # db.session.add(qd)
         # db.session.commit()
 
         # Subject.__table__.create(db.engine)
-        # Class.__table__.create(db.engine)
+        # SchoolClass.__table__.create(db.engine)
