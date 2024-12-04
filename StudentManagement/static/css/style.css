@@ -7,7 +7,7 @@ body {
 
 /* Chỉnh min-height của container để đảm bảo footer nằm cuối*/
 .container {
-    min-height: calc(100vh - 290px); /* Điều chỉnh tùy chiều cao thực tế của footer */
+    min-height: calc(100vh - 295px); /* Điều chỉnh tùy chiều cao thực tế của footer */
     display: flex;
     flex-direction: column;
 }
@@ -28,9 +28,18 @@ div.quen_mk {
     box-shadow: none;
 }
 
+/*USER_INFO*/
+.user_info {
+    margin-top: 5%;
+    width: 100%;
+    display: flex;
+    justify-content: space-around;
+}
+
 /* footer */
 .footer .fixed-loca {
     padding: 1rem;
+    padding-top: 1.5rem;
     display: flex;
     flex-wrap: nowrap;
     flex-direction: column;
@@ -45,7 +54,7 @@ div.quen_mk {
 .footer .footer-logo {
     width: 10%;
     margin-top: 0;
-    margin-right: 8%;
+    margin-right: 7%;
 }
 .footer .footer-inf {
     width: 20%;

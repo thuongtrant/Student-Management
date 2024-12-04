@@ -1,6 +1,7 @@
 from models import User, Subject
 import bcrypt
 
+
 def check_login(username, password):
     if username and password:
         # Tìm người dùng trong cơ sở dữ liệu

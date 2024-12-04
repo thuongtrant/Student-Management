@@ -39,10 +39,10 @@
             </button>
             <ul style="background:lightgrey;" class="dropdown-menu dropdown-menu-end">
                 <li><a class="dropdown-item" href="{{ url_for('user_info') }}">Thông tin cá nhân</a></li>
-                <li><a class="dropdown-item" href="#">Đổi mật khẩu</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('change_password') }}">Đổi mật khẩu</a></li>
                 <li>
                     <hr class="dropdown-divider">
-                    <a class="dropdown-item" href="{{ url_for('login') }}">Đăng xuất</a></hr></li>
+                    <a class="dropdown-item" href="{{ url_for('logout') }}">Đăng xuất</a></hr></li>
             </ul>
         </div>
     </div>

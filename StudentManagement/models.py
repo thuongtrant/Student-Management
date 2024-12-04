@@ -14,7 +14,7 @@ class BaseModel(db.Model):
     email = Column(String(100), nullable=True)
     image_link = Column(String(255), nullable=True)
     gender = Column(String(10), nullable=True)
-    birth_year = Column(Integer, nullable=True)
+    birth_day = Column(DATETIME, nullable=True)
 
 class UserRole(UserEnum):
     ADMIN = "ADMIN"
@@ -84,8 +84,9 @@ class Rule(db.Model):
 
 if __name__ == '__main__':
     with app.app_context():
-        pass
+        # pass
         # db.create_all()
+        User.__table__.create(db.engine)
 
         # Rule.__table__.create(db.engine)
         # qd = Rule(so_tuoi_toi_thieu=15,so_tuoi_toi_da=20,si_so_toi_da=40)
