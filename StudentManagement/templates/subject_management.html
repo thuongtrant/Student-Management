@@ -1,15 +1,8 @@
-
-
-
 {% extends 'layout/base.html' %}
 
 {% block title %} Quản lý môn học {% endblock %}
 {% block js %}
 <script src="{{ url_for('static', filename='js/delete_subject.js') }}"></script>
-{% endblock %}
-
-{% block header %}
-{% include 'layout/header.html'%}
 {% endblock %}
 
 {% block content %}
@@ -66,10 +59,12 @@
                 <td>{{ subject.teacher }}</td>
                 <td>
                     <!-- Nút Sửa -->
-                    <a href="{{ url_for('edit_subject', subject_id=subject.id) }}" class="btn background-btn" style="color:white">Sửa</a>
+                    <a href="{{ url_for('edit_subject', subject_id=subject.id) }}" class="btn background-btn"
+                       style="color:white">Sửa</a>
 
                     <!-- Nút Xóa -->
-                <button class="btn btn-danger" onclick="delete_subject({{ subject.id }})" style="color:white">Xóa</button>
+                    <button class="btn btn-danger" onclick="delete_subject({{ subject.id }})" style="color:white">Xóa
+                    </button>
 
                 </td>
             </tr>
@@ -78,10 +73,4 @@
         </table>
     </div>
 </div>
-
-
-{% endblock %}
-
-{% block footer %}
-{% include 'layout/footer.html'%}
 {% endblock %}

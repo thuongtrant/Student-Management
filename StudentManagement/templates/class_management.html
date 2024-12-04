@@ -4,25 +4,20 @@
 {% block js %}
 <script src="{{ url_for('static', filename='js/delete_class.js') }}"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
-
-{% endblock %}
-
-{% block header %}
-{% include 'layout/header.html'%}
 {% endblock %}
 
 {% block content %}
 {% with messages = get_flashed_messages(with_categories=true) %}
-  {% if messages %}
-    <div class="alert-container">
-      {% for category, message in messages %}
-        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-          {{ message }}
-          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-      {% endfor %}
+{% if messages %}
+<div class="alert-container">
+    {% for category, message in messages %}
+    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
-  {% endif %}
+    {% endfor %}
+</div>
+{% endif %}
 {% endwith %}
 
 <br>
@@ -111,9 +106,4 @@
         </table>
     </div>
 </div>
-{% endblock %}
-
-
-{% block footer %}
-{% include 'layout/footer.html'%}
 {% endblock %}

@@ -1,7 +1,6 @@
 from StudentManagement import db
 from datetime import datetime
 import bcrypt
-from sqlalchemy.exc import IntegrityError
 from models import User
 import random, string
 
@@ -19,7 +18,7 @@ def add_user(user_role, username, last_name, first_name, phone, email, image_lin
     # Mã hóa mật khẩu bằng bcrypt
     hashed_password = bcrypt.hashpw(password.encode(), bcrypt.gensalt())
 
-    #Chuyển chuỗi thành ngày tháng năm
+    # Chuyển chuỗi thành ngày tháng năm
     birth_day = datetime.strptime(birth_day_s, "%d%m%Y")
 
     # Tạo đối tượng User mới và thêm vào cơ sở dữ liệu
@@ -54,7 +53,7 @@ def random_password():
     password = [
         random.choice(letters_upper),  # 1 ký tự hoa
         random.choice(special_chars),  # 1 ký tự đặc biệt
-        random.choice(digits)          # 1 số
+        random.choice(digits)  # 1 số
     ]
 
     # Thêm các ký tự còn lại từ tập chữ thường

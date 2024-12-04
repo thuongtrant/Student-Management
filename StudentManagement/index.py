@@ -1,15 +1,10 @@
-from flask import render_template, request, redirect, url_for, flash
 from flask_login import login_user, logout_user, login_required, LoginManager, current_user
 from flask import render_template, request, redirect, url_for, flash, session
-from flask_login import login_user, logout_user, login_required, LoginManager
 from StudentManagement import app, db
 from models import User, UserRole
 from utils import check_login, get_subject_by_id  # Thêm import check_login từ utils.py
 from StudentManagement.models import Rule, Subject, SchoolClass
 from flask import jsonify
-
-from StudentManagement.models import User, UserRole
-from StudentManagement.utils import check_login  # Thêm import check_login từ utils.py
 import bcrypt
 from password_strength import PasswordPolicy
 
@@ -143,6 +138,7 @@ def is_valid_password(password):
         return True
     return False
 
+
 # Start Logout
 @app.route('/logout')
 @login_required
@@ -150,6 +146,8 @@ def logout():
     logout_user()
     flash('Đăng xuất thành công!', 'success')
     return redirect(url_for('login'))
+
+
 # End logout
 
 # Start Change_of_rules
@@ -170,13 +168,15 @@ def change_of_rules():
             quidinh.si_so_toi_da = si_so_toi_da
             err_mgs = 'Cập nhật quy định thành công!', 'success'
         else:  # Nếu chưa có, tạo mới
-            quidinh = Rule(so_tuoi_toi_thieu=so_tuoi_toi_thieu, so_tuoi_toi_da=so_tuoi_toi_da, si_so_toi_da=si_so_toi_da)
+            quidinh = Rule(so_tuoi_toi_thieu=so_tuoi_toi_thieu, so_tuoi_toi_da=so_tuoi_toi_da,
+                           si_so_toi_da=si_so_toi_da)
             db.session.add(quidinh)
 
         db.session.commit()  # Lưu thay đổi vào CSDL
 
     quidinh = Rule.query.first()
-    return render_template('change_of_rules.html', quidinh=quidinh, err_mgs = err_mgs)
+    return render_template('change_of_rules.html', quidinh=quidinh, err_mgs=err_mgs)
+
 
 # Môn học
 # Thêm mới môn học, hiển thị danh sách
@@ -199,6 +199,7 @@ def manage_subjects():
     return render_template('subject_management.html', subjects=subjects)
     # return render_template('subject_management.html')
 
+
 # Lấy dữ liệu để hiện thị trong trang sửa môn học
 @app.route('/edit_subject/<int:subject_id>', methods=['GET'])
 def edit_subject(subject_id):
@@ -208,6 +209,7 @@ def edit_subject(subject_id):
         return redirect(url_for('manage_subjects'))
 
     return render_template('edit_subject.html', subject=subject)
+
 
 # Tiến hành sửa môn học
 @app.route('/update_subject/<int:subject_id>', methods=['POST'])
@@ -244,6 +246,7 @@ def delete_subject(subject_id):
     else:
         return jsonify({'success': False, 'message': 'Không tìm thấy môn học!'}), 404
 
+
 # Lớp học
 @app.route('/class_management', methods=['GET', 'POST'])
 def class_management():
@@ -262,9 +265,9 @@ def class_management():
             flash(f'Sĩ số lớp không được vượt quá {quy_dinh.si_so_toi_da}', 'danger')
             return redirect(url_for('class_management'))
         # Thêm môn học vào cơ sở dữ liệu
-        new_class = SchoolClass(name=class_name, code=class_code, grade = grade,
-                          student_count=student_count, description=description,
-                          teacher=teacher)
+        new_class = SchoolClass(name=class_name, code=class_code, grade=grade,
+                                student_count=student_count, description=description,
+                                teacher=teacher)
         db.session.add(new_class)
         db.session.commit()
         flash('Lớp học đã được thêm thành công!', 'success')
@@ -273,6 +276,7 @@ def class_management():
     classes = SchoolClass.query.all()  # Lấy tất cả môn học từ DB
     return render_template('class_management.html', classes=classes)
     # return render_template('class_management.html')
+
 
 # Lấy dữ liệu để hiện thị trong trang sửa lớp học
 @app.route('/edit_class/<int:class_id>', methods=['GET'])
@@ -283,6 +287,7 @@ def edit_class(class_id):
         return redirect(url_for('class_management'))
 
     return render_template('edit_class.html', classById=classById)
+
 
 # Tiến hành sửa lớp học
 @app.route('/update_class/<int:class_id>', methods=['POST'])
@@ -307,6 +312,7 @@ def update_class(class_id):
         flash('Có lỗi xảy ra khi cập nhật lớp học!', 'danger')
 
     return redirect(url_for('class_management'))
+
 
 @app.route('/api/delete-class/<int:class_id>', methods=['DELETE'])
 def delete_class(class_id):

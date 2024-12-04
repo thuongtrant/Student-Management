@@ -7,17 +7,17 @@ function delete_subject(subjectId) {
             'Content-Type': 'application/json'
         }
     })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            alert(data.message);
-            document.getElementById(`subject-${subjectId}`).remove();  // Xóa dòng môn học khỏi giao diện
-        } else {
-            alert("Không thể xóa môn học: " + data.message);
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert("Đã xảy ra lỗi khi xóa môn học!");
-    });
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                document.getElementById(`subject-${subjectId}`).remove();  // Xóa dòng môn học khỏi giao diện
+            } else {
+                alert("Không thể xóa môn học: " + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert("Đã xảy ra lỗi khi xóa môn học!");
+        });
 }

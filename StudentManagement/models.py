@@ -4,6 +4,7 @@ from sqlalchemy.orm import relationship
 from enum import Enum as UserEnum, UNIQUE
 from StudentManagement import db, app
 
+
 class BaseModel(db.Model):
     __abstract__ = True  # Để đánh dấu đây là lớp trừu tượng
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -16,10 +17,12 @@ class BaseModel(db.Model):
     gender = Column(String(10), nullable=True)
     birth_day = Column(DATETIME, nullable=True)
 
+
 class UserRole(UserEnum):
     ADMIN = "ADMIN"
     TEACHER = "TEACHER"
     EMPLOYEE = "EMPLOYEE"
+
 
 # Ví dụ model cho bảng User
 class User(BaseModel, UserMixin):
@@ -32,6 +35,7 @@ class User(BaseModel, UserMixin):
     def __repr__(self):
         return f'<User {self.username}>'
 
+
 # #Tạo bảng học sinh
 # class Student(BaseModel):
 #     __tablename__ = 'student'
@@ -42,7 +46,7 @@ class User(BaseModel, UserMixin):
 #     def __repr__(self):
 #         return f'<Student {self.first_name} {self.last_name}>'
 
-#Tạo bảng môn học
+# Tạo bảng môn học
 class Subject(db.Model):
     __tablename__ = 'subject'
     __table_args__ = {'extend_existing': True}
@@ -55,6 +59,7 @@ class Subject(db.Model):
     def __repr__(self):
         return f'<Subject {self.name}>'
 
+
 # Tạo bảng lớp học
 class SchoolClass(db.Model):
     __tablename__ = 'schoolclass'
@@ -66,8 +71,10 @@ class SchoolClass(db.Model):
     grade = db.Column(db.String(2), nullable=False)
     description = db.Column(db.String(255))
     teacher = db.Column(db.String(100), nullable=False)
+
     def __repr__(self):
         return f'<SchoolClass {self.name}>'
+
 
 # Tạo bảng quidinh
 class Rule(db.Model):

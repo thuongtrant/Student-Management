@@ -1,6 +1,7 @@
 body {
     background-color: #959CA4;
 }
+
 .col-md-4 {
     margin: auto;
 }
@@ -11,19 +12,22 @@ body {
     display: flex;
     flex-direction: column;
 }
+
 .border_btn {
-border-radius: 5px;
+    border-radius: 5px;
 }
+
 .background-btn {
-background-color:#32383e
+    background-color: #32383e
 }
 
 /*MENU USER*/
 div.quen_mk {
     margin-top: 1rem;
     padding: 1rem;
-    background:lightgray;
+    background: lightgray;
 }
+
 .btn:focus {
     box-shadow: none;
 }
@@ -44,6 +48,7 @@ div.quen_mk {
     flex-wrap: nowrap;
     flex-direction: column;
 }
+
 .footer {
     background-color: #32383e;
     color: #eae0e0;
@@ -56,31 +61,39 @@ div.quen_mk {
     margin-top: 0;
     margin-right: 7%;
 }
+
 .footer .footer-inf {
     width: 20%;
     padding-left: 1rem;
 }
+
 .footer .footer-heading {
     text-transform: uppercase;
 }
+
 .footer .footer-inf .inf {
     padding-left: 1.125rem;
 }
+
 .footer .footer-inf .inf > li {
     padding-bottom: 7px;
     transition-property: color;
     transition-duration: 200ms;
     transition-timing-function: ease-in-out;
 }
+
 .footer .footer-inf .inf > li:hover {
     color: rgb(193, 164, 110);
 }
+
 .footer .footer-contact {
     width: 40%;
 }
+
 .footer .contact {
     list-style-type: none;
 }
+
 .footer .contact > a {
     text-decoration: none;
     flex-direction: row;
@@ -91,20 +104,24 @@ div.quen_mk {
     margin-bottom: 10px;
     color: #eae0e0;
 }
+
 .footer .contact > a:hover {
     color: rgb(193, 164, 110);
     transition-property: color;
     transition-duration: 200ms;
     transition-timing-function: ease-in-out;
 }
+
 .footer .contact-icon {
     margin-right: 0.625rem;
     width: 1.875rem;
     font-size: 1.5625rem;
 }
+
 .footer .footer-follow {
     width: 20%;
 }
+
 .footer .footer-follow-icon {
     flex-direction: row;
     display: flex;
@@ -112,6 +129,7 @@ div.quen_mk {
     justify-content: space-between;
     text-align: justify;
 }
+
 .footer .footer-follow-icon > a {
     color: #eae0e0;;
     font-size: 1.5625rem;
@@ -119,9 +137,11 @@ div.quen_mk {
     transition-duration: 200ms;
     transition-timing-function: ease-in-out;
 }
+
 .footer .footer-follow-icon > a:hover {
     color: rgb(193, 164, 110);
 }
+
 .footer .footer-follow > p {
     color: #eae0e0;
     margin: 0;
@@ -130,6 +150,7 @@ div.quen_mk {
     transition-duration: 200ms;
     transition-timing-function: ease-in-out;
 }
+
 .footer .footer-follow > p:hover {
     color: rgb(193, 164, 110);
 }
