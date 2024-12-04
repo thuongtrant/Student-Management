@@ -1,9 +1,3 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-</head>
-<body>
 <nav class="navbar navbar-expand-sm bg-dark navbar-dark">
     <div class="container-fluid">
         <ul class="navbar-nav">
@@ -12,13 +6,13 @@
             </li>
             {% if current_user.is_authenticated and current_user.user_role.name == 'ADMIN' %}
             <li class="nav-item">
-                <a class="nav-link" href="#">Quản lý môn học</a>
+                <a class="nav-link" href="{{ url_for('manage_subjects') }}">Quản lý môn học</a>
             </li>
             <li class="nav-item">
                 <a class="nav-link" href="#">Thống kê báo cáo</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="#">Thay đổi quy định</a>
+                <a class="nav-link" href="{{ url_for('change_of_rules') }}">Thay đổi quy định</a>
             </li>
             {% elif current_user.is_authenticated and current_user.user_role.name == 'TEACHER' %}
             <li class="nav-item">
@@ -30,12 +24,12 @@
             <li class="nav-item">
                 <a class="nav-link" href="#">Xuất điểm</a>
             </li>
-            {% elif current_user.is_authenticated and current_user.user_role.name == 'EMPLOYEE' %}
+             {% elif current_user.is_authenticated and current_user.user_role.name == 'EMPLOYEE' %}
             <li class="nav-item">
                 <a class="nav-link" href="#">Quản lý học sinh</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="#">Quản lý lớp học</a>
+                <a class="nav-link" href="{{ url_for('class_management') }}">Quản lý lớp học</a>
             </li>
             {% endif %}
         </ul>
@@ -53,5 +47,3 @@
         </div>
     </div>
 </nav>
-</body>
-</html>

@@ -11,6 +11,12 @@ body {
     display: flex;
     flex-direction: column;
 }
+.border_btn {
+border-radius: 5px;
+}
+.background-btn {
+background-color:#32383e
+}
 
 /*MENU USER*/
 div.quen_mk {
