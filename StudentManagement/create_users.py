@@ -1,5 +1,5 @@
-from create_user_base import add_user
 from StudentManagement import app
+from create_user_base import add_user
 
 with app.app_context():
     add_user('ADMIN', 'admin_tu', 'Võ Minh Cẩm', 'Tú',

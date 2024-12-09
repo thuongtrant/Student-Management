@@ -1,5 +1,6 @@
-from models import User, Subject
 import bcrypt
+
+from models import User, Subject
 
 
 def check_login(username, password):

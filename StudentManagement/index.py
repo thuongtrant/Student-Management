@@ -1,12 +1,19 @@
-from flask_login import login_user, logout_user, login_required, LoginManager, current_user
-from flask import render_template, request, redirect, url_for, flash, session
-from StudentManagement import app, db
-from models import User, UserRole
-from utils import check_login, get_subject_by_id  # Thêm import check_login từ utils.py
-from StudentManagement.models import Rule, Subject, SchoolClass
-from flask import jsonify
+from datetime import datetime
+from math import ceil
+
 import bcrypt
+from flask import jsonify
+from flask import render_template, request, redirect, url_for, flash
+from flask_login import login_user, logout_user, login_required, LoginManager, current_user
 from password_strength import PasswordPolicy
+from sqlalchemy import and_
+
+from StudentManagement import app, db
+from StudentManagement.models import Rule, Subject, SchoolClass
+from dao import load_students
+from models import User, UserRole, Student
+from send_email import send_mail
+from utils import check_login  # Thêm import check_login từ utils.py
 
 # Khởi tạo LoginManager
 login_manager = LoginManager()
@@ -84,6 +91,7 @@ def employee_dashboard():
 
 # End login
 
+# Xem thông tin cá nhân người dùng
 @app.route('/user_info')
 @login_required
 def user_info():
@@ -94,12 +102,14 @@ def user_info():
     return render_template('user_info.html', user=user, formatted_date=formatted_date)
 
 
+# Trả về trang cập nhật mật khẩu
 @app.route('/change_password')
 @login_required
 def change_password():
     return render_template('change_password.html')
 
 
+# Kiểm tra mật khẩu mới
 @app.route('/test_password', methods=['GET', 'POST'])
 @login_required
 def test_password():
@@ -121,6 +131,159 @@ def test_password():
         else:
             flash("Nhập sai mật khẩu cũ", 'error')
     return redirect(url_for('change_password'))
+
+
+# Trả về trang quản lý học sinh
+@app.route('/student_management')
+@login_required
+def student_management():
+    return render_template('student_management.html')
+
+
+# Thêm học sinh mới
+@app.route('/add_student', methods=['GET', 'POST'])
+@login_required
+def add_student():
+    if request.method == 'POST':
+        first_name = request.form.get('first_name')
+        last_name = request.form.get('last_name')
+        birth_date = request.form.get('birth_date')
+
+        # Kiểm tra học sinh đã tồn tại hay chưa
+        existing_student = db.session.query(Student).filter(
+            and_(
+                Student.first_name == first_name,
+                Student.last_name == last_name,
+                Student.birth_day == birth_date
+            )
+        ).first()
+
+        if existing_student:
+            flash("Học sinh đã tồn tại!", 'error')
+        else:
+            # Lấy năm hiện tại (int)
+            current_year = int(datetime.now().year)
+
+            # Lấy năm từ birth_date (int)
+            birth_year = int(birth_date.split('-')[0])  # Tách năm từ chuỗi "yyyy-mm-dd"
+            if current_year - birth_year < 15:
+                flash("Học sinh chưa đạt độ tuổi yêu cầu!", 'error')
+            else:
+                phone = request.form.get('phone')
+                gender = request.form.get('gender')
+                email = request.form.get('email')
+                address = request.form.get('address')
+                file = request.files['photo']
+                new_student = Student(
+                    first_name=first_name,
+                    last_name=last_name,
+                    birth_day=birth_date,
+                    phone=phone,
+                    gender=gender,
+                    email=email,
+                    address=address,
+                    image_link=file.filename,
+                )
+                db.session.add(new_student)
+                db.session.commit()
+                flash("Thêm thành công!", 'success')
+                send_mail(email, last_name, first_name)
+    return redirect(url_for('student_management'))
+
+
+# Tra cứu học sinh
+@app.route('/student_searching')
+@login_required
+def student_searching():
+    page = request.args.get('page', 1)
+    kw = request.args.get('kw')
+    students = load_students(kw=kw, page=int(page))
+
+    page_size = 10
+    total = Student.query.count()
+
+    return render_template("student_searching.html", students=students, pages=ceil(total / page_size))
+
+
+# Xem hồ sơ cá nhân học sinh
+@app.route('/student_info')
+@login_required
+def student_info():
+    student_id = request.args.get('student_id', type=int)
+    student = Student.query.get(student_id)
+    formatted_date = student.birth_day.strftime("%d/%m/%Y")
+    return render_template("student_info.html", student=student, formatted_date=formatted_date)
+
+
+# Chỉnh sửa thông tin học sinh
+@app.route('/student_update_info')
+@login_required
+def student_update_info():
+    student_id = request.args.get('student_id', type=int)
+    student = Student.query.get(student_id)
+    formatted_date = student.birth_day.strftime('%Y-%m-%d')
+    return render_template("student_update_info.html", student=student, formatted_date=formatted_date)
+
+
+# Cập nhật thông tin trong cơ sở dữ liệu
+@app.route('/student_update_process', methods=['GET', 'POST'])
+@login_required
+def student_update_process():
+    if request.method == 'POST':
+        student_id = request.args.get('student_id', type=int)
+        student = Student.query.get(student_id)
+
+        # Xử lý ngày sinh
+        birth_date = request.form.get('birth_date')
+        if birth_date:
+            current_year = int(datetime.now().year)
+            birth_year = int(birth_date.split('-')[0])  # Tách năm từ "yyyy-mm-dd"
+            if current_year - birth_year < 15:
+                flash("Học sinh chưa đạt độ tuổi yêu cầu!", 'error')
+                return redirect(url_for('student_update_info', student_id=student_id))
+            else:
+                student.birth_day = birth_date  # Cập nhật ngày sinh nếu hợp lệ
+
+        # Cập nhật thông tin khác
+        student.first_name = request.form.get('first_name') or student.first_name
+        student.last_name = request.form.get('last_name') or student.last_name
+        student.phone = request.form.get('phone') or student.phone
+        student.gender = request.form.get('gender') or student.gender
+        student.email = request.form.get('email') or student.email
+        student.address = request.form.get('address') or student.address
+        student.image_link = request.files.get('photo').filename or student.image_link
+
+        # Lưu thay đổi vào cơ sở dữ liệu
+        db.session.commit()
+        flash("Cập nhật thành công!", 'success')
+        return redirect(url_for('student_info', student_id=student_id))
+
+
+# Xác thực trước khi xóa hồ sơ học sinh
+@app.route('/delete_student_confirm')
+@login_required
+def delete_student_confirm():
+    student_id = request.args.get('student_id', type=int)
+    student = Student.query.get(student_id)
+    return render_template("delete_student.html", student=student)
+
+
+# Xóa hồ sơ học sinh
+@app.route('/delete_student', methods=['GET', 'POST'])
+@login_required
+def delete_student():
+    if request.method == 'POST':
+        password_check = request.form.get('password_check')
+        student_id = request.args.get('student_id', type=int)
+        student = Student.query.get(student_id)
+        if bcrypt.checkpw(password_check.encode(), current_user.password.encode()):
+            db.session.delete(student)
+            db.session.commit()
+            flash("Xóa thành công!", 'success')
+        else:
+            flash("Sai mật khẩu!", 'error')
+            return redirect(url_for('delete_student_confirm', student_id=student_id))
+    return redirect(url_for('student_searching'))
 
 
 # Định nghĩa yêu cầu mật khẩu

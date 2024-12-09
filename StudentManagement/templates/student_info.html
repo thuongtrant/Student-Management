@@ -1,0 +1,52 @@
+{% extends "layout/base.html" %}
+
+{% block title %} StudentInfo - Student Management {% endblock %}
+
+{% block content %}
+<div style="padding:0;" class="user_info">
+    <div class="card" style="width:15%;">
+        <img class="card-img-top" src="{{ url_for('static', filename='images/user_image/' ~ student.image_link) }}"
+             alt="Student image">
+        <div style="margin:auto;" class="card-body">
+            <p class="card-text end"><b>Mã học sinh: {{student.id}}</b></p>
+        </div>
+    </div>
+    <ul style="width:75%;background:white;" class="list-group list-group-flush">
+        <h2 style="margin:2% auto 0;">HỒ SƠ CÁ NHÂN HỌC SINH</h2>
+        <li class="list-group-item">
+            <div class="row">
+                <div class="col-md-6">Họ và tên: <b>{{student.last_name}} {{student.first_name}}</b></div>
+                <div class="col-md-6">Giới tính: <b>{{student.gender}}</b></div>
+            </div>
+        </li>
+        <li class="list-group-item">
+            <div class="row">
+                <div class="col-md-6">Ngày sinh: <b>{{formatted_date}}</b></div>
+                <div class="col-md-6">Số điện thoại: <b>{{student.phone}}</b></div>
+            </div>
+        </li>
+        <li class="list-group-item">
+            <div class="row">
+                <div class="col-md-6">Lớp hiện tại: <b>{{student.class_id}}</b></div>
+                <div class="col-md-6">Giáo viên chủ nhiệm hiện tại: <b>{{student.main_teacher_id}}</b></div>
+            </div>
+        </li>
+        <li class="list-group-item">
+            <div class="row">
+                <div class="col-md-6">Email: <b>{{student.email}}</b></div>
+                <div class="col-md-6">Địa chỉ nhà: <b>{{student.address}}</b></div>
+            </div>
+        </li>
+        <b style="margin: 2%;">Vui lòng liên hệ trực tiếp Trung tâm Quản lý Hệ thống thông tin/gửi mail <a
+                style="color:#32383e;" href="mailto:trungtamhttt@ou.edu.vn">trungtamhttt@ou.edu.vn</a> khi có sai sót
+            thông tin!</b>
+    </ul>
+</div>
+<br>
+<ul style="display:flex;list-style-type:none;justify-content:flex-end;width:96%;">
+    <li style="margin-right:2%;"><a style="color:white;" class="btn background-btn border_btn"
+                                    href="{{ url_for('student_searching') }}">Trang tra cứu</a></li>
+    <li><a style="color:white;" class="btn background-btn border_btn"
+           href="{{ url_for('student_update_info', student_id=student.id) }}">Chỉnh sửa</a></li>
+</ul>
+{% endblock %}

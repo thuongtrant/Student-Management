@@ -5,7 +5,7 @@
 {% block content %}
 <div class="user_info">
     <div class="card" style="width:15%;">
-        <img class="card-img-top" src="{{ url_for('static', filename=user.image_link) }}" alt="Card image">
+        <img class="card-img-top" src="{{ url_for('static', filename=user.image_link) }}" alt="User image">
         <div style="margin:auto;" class="card-body">
             <p class="card-text end">{{user.username}}</p>
         </div>
