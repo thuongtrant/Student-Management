@@ -2,8 +2,8 @@ from flask_login import login_user, logout_user, login_required, LoginManager, c
 from flask import render_template, request, redirect, url_for, flash, session
 from StudentManagement import app, db
 from models import User, UserRole
-from utils import check_login, get_subject_by_id  # Thêm import check_login từ utils.py
-from StudentManagement.models import Rule, Subject, SchoolClass
+from utils import check_login, get_all_subjects, get_all_teachers, get_subject_by_id, add_subject, update_subject, delete_subject
+from StudentManagement.models import Rule, Subject, SchoolClass, Teacher
 from flask import jsonify
 import bcrypt
 from password_strength import PasswordPolicy
@@ -176,7 +176,7 @@ def change_of_rules():
 
     quidinh = Rule.query.first()
     return render_template('change_of_rules.html', quidinh=quidinh, err_mgs=err_mgs)
-
+import pdb
 
 # Môn học
 # Thêm mới môn học, hiển thị danh sách
@@ -187,64 +187,49 @@ def manage_subjects():
         subject_name = request.form.get('subject_name')
         subject_code = request.form.get('subject_code')
         description = request.form.get('description')
-        teacher = request.form.get('teacher')
+        teacher_id = request.form.get('teacher_id')
 
-        # Thêm môn học vào cơ sở dữ liệu
-        new_subject = Subject(name=subject_name, code=subject_code, description=description, teacher=teacher)
-        db.session.add(new_subject)
-        db.session.commit()
-        return redirect(url_for('manage_subjects'))
+        # Thêm môn học
+        if add_subject(subject_name, subject_code, description, teacher_id):
+            return redirect(url_for('manage_subjects'))
 
-    subjects = Subject.query.all()  # Lấy tất cả môn học từ DB
-    return render_template('subject_management.html', subjects=subjects)
-    # return render_template('subject_management.html')
+    subjects = get_all_subjects()
+    teachers = get_all_teachers()
+    return render_template('subject_management.html', subjects=subjects, teachers=teachers)
 
 
-# Lấy dữ liệu để hiện thị trong trang sửa môn học
 @app.route('/edit_subject/<int:subject_id>', methods=['GET'])
 def edit_subject(subject_id):
-    subject = Subject.query.get(subject_id)
+    subject = get_subject_by_id(subject_id)
     if not subject:
         flash('Môn học không tồn tại!', 'danger')
         return redirect(url_for('manage_subjects'))
 
-    return render_template('edit_subject.html', subject=subject)
+    # Lấy danh sách giáo viên
+    available_teachers = get_all_teachers()
+    return render_template('edit_subject.html', subject=subject, teachers=available_teachers)
 
 
-# Tiến hành sửa môn học
 @app.route('/update_subject/<int:subject_id>', methods=['POST'])
-def update_subject(subject_id):
-    subject = Subject.query.get(subject_id)
-    if not subject:
-        flash('Môn học không tồn tại!', 'danger')
-        return redirect(url_for('manage_subjects'))
-
+def update_subject_route(subject_id):
     # Lấy dữ liệu từ form
-    subject.name = request.form.get('subject_name')
-    subject.code = request.form.get('subject_code')
-    subject.description = request.form.get('description')
-    subject.teacher = request.form.get('teacher')
+    subject_name = request.form.get('subject_name')
+    subject_code = request.form.get('subject_code')
+    description = request.form.get('description')
+    teacher_id = request.form.get('teacher_id')
 
-    try:
-        db.session.commit()
-        flash('Cập nhật môn học thành công!', 'success')
-    except Exception as e:
-        db.session.rollback()
-        flash('Có lỗi xảy ra khi cập nhật môn học!', 'danger')
-
-    return redirect(url_for('manage_subjects'))
+    # Cập nhật môn học
+    if update_subject(subject_id, subject_name, subject_code, description, teacher_id):
+        return redirect(url_for('manage_subjects'))
 
 
 @app.route('/api/delete-subject/<int:subject_id>', methods=['DELETE'])
-def delete_subject(subject_id):
-    subject = Subject.query.get(subject_id)
-
-    if subject:
-        db.session.delete(subject)
-        db.session.commit()
-        return jsonify({'success': True, 'message': 'Môn học đã được xóa thành công!'})
+def delete_subject_route(subject_id):
+    success, message = delete_subject(subject_id)
+    if success:
+        return jsonify({'success': True, 'message': message})
     else:
-        return jsonify({'success': False, 'message': 'Không tìm thấy môn học!'}), 404
+        return jsonify({'success': False, 'message': message}), 404
 
 
 # Lớp học
