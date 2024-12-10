@@ -49,8 +49,8 @@ class Teacher(BaseModel):
     __tablename__ = 'teacher'
     __table_args__ = {'extend_existing': True}
 
-    # subject_id = Column(Integer, ForeignKey('subject.id'), nullable=True)
-
+    class_id = db.Column(db.Integer, db.ForeignKey('schoolclass.id'), nullable=True,
+                         unique=True)
     def __str__(self):
         return f"{self.last_name} {self.first_name}"
 
@@ -79,7 +79,7 @@ class SchoolClass(db.Model):
     student_count = db.Column(db.Integer, nullable=False)
     grade = db.Column(db.String(2), nullable=False)
     description = db.Column(db.String(255))
-    teacher = db.Column(db.String(100), nullable=False)
+    teacher_id = db.Column(Integer, ForeignKey('teacher.id'), nullable = True, unique=True)
 
     def __repr__(self):
         return f'<SchoolClass {self.name}>'

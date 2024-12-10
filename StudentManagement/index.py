@@ -1,8 +1,11 @@
 from flask_login import login_user, logout_user, login_required, LoginManager, current_user
 from flask import render_template, request, redirect, url_for, flash, session
+from pyexpat.errors import messages
+
 from StudentManagement import app, db
 from models import User, UserRole
-from utils import check_login, get_all_subjects, get_all_teachers, get_subject_by_id, add_subject, update_subject, delete_subject
+from utils import (check_login, get_all_subjects, get_all_teachers, get_subject_by_id, add_subject, update_subject, delete_subject
+, get_all_classes, get_all_teachers, add_class,get_class_by_id, update_class_by_id, delete_class_by_id)
 from StudentManagement.models import Rule, Subject, SchoolClass, Teacher
 from flask import jsonify
 import bcrypt
@@ -242,73 +245,57 @@ def class_management():
         grade = request.form.get('class_grade')
         student_count = int(request.form.get('student_count'))
         description = request.form.get('description')
-        teacher = request.form.get('teacher')
+        teacher_id = request.form.get('teacher_id')
 
-        # Lấy quy định về sĩ số tối đa
-        quy_dinh = Rule.query.first()  # Giả định chỉ có một bản ghi quy định
-        if student_count > quy_dinh.si_so_toi_da:
-            flash(f'Sĩ số lớp không được vượt quá {quy_dinh.si_so_toi_da}', 'danger')
-            return redirect(url_for('class_management'))
-        # Thêm môn học vào cơ sở dữ liệu
-        new_class = SchoolClass(name=class_name, code=class_code, grade=grade,
-                                student_count=student_count, description=description,
-                                teacher=teacher)
-        db.session.add(new_class)
-        db.session.commit()
-        flash('Lớp học đã được thêm thành công!', 'success')
+        success, message = add_class(class_name, class_code, grade, student_count, description, teacher_id)
+        if not success:
+            flash(message, 'danger')
+        else:
+            flash(message, 'success')
         return redirect(url_for('class_management'))
 
-    classes = SchoolClass.query.all()  # Lấy tất cả môn học từ DB
-    return render_template('class_management.html', classes=classes)
-    # return render_template('class_management.html')
+    classes = get_all_classes()
+    teachers = get_all_teachers()
+    return render_template('class_management.html', classes=classes, teachers = teachers)
 
 
 # Lấy dữ liệu để hiện thị trong trang sửa lớp học
 @app.route('/edit_class/<int:class_id>', methods=['GET'])
 def edit_class(class_id):
-    classById = SchoolClass.query.get(class_id)
+    classById =  get_class_by_id(class_id)
     if not classById:
         flash('Lớp học không tồn tại!', 'danger')
         return redirect(url_for('class_management'))
+    available_teachers = get_all_teachers()
 
-    return render_template('edit_class.html', classById=classById)
+    return render_template('edit_class.html', classById=classById, teachers = available_teachers)
 
 
 # Tiến hành sửa lớp học
 @app.route('/update_class/<int:class_id>', methods=['POST'])
 def update_class(class_id):
-    classById = SchoolClass.query.get(class_id)
-    if not classById:
-        flash('Lớp học không tồn tại!', 'danger')
-        return redirect(url_for('class_management'))
+    class_name = request.form.get('class_name')
+    class_code = request.form.get('class_code')
+    grade = request.form.get('class_grade')
+    student_count = int(request.form.get('student_count'))
+    description = request.form.get('description')
+    teacher_id = request.form.get('teacher_id')
 
-    # Lấy dữ liệu từ form
-    classById.name = request.form.get('class_name')
-    classById.code = request.form.get('class_code')
-    classById.grade = request.form.get('class_grade')
-    classById.description = request.form.get('description')
-    classById.teacher = request.form.get('teacher')
-
-    try:
-        db.session.commit()
-        flash('Cập nhật lớp học thành công!', 'success')
-    except Exception as e:
-        db.session.rollback()
-        flash('Có lỗi xảy ra khi cập nhật lớp học!', 'danger')
+    success, message = update_class_by_id(class_id, class_name, class_code, grade, student_count, description, teacher_id)
+    if not success:
+        flash(message, 'danger')
+    else:
+        flash(message, 'success')
 
     return redirect(url_for('class_management'))
 
-
 @app.route('/api/delete-class/<int:class_id>', methods=['DELETE'])
 def delete_class(class_id):
-    classById = SchoolClass.query.get(class_id)
-
-    if classById:
-        db.session.delete(classById)
-        db.session.commit()
-        return jsonify({'success': True, 'message': 'Lớp học đã được xóa thành công!'})
+    success, message = delete_class_by_id(class_id)
+    if success:
+        return jsonify({'success': True, 'message': message})
     else:
-        return jsonify({'success': False, 'message': 'Không tìm thấy lớp học!'}), 404
+        return jsonify({'success': False, 'message': message})
 
 
 if __name__ == "__main__":
