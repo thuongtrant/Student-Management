@@ -1,14 +1,14 @@
-from sqlalchemy import Column, Integer, String, Float, Boolean, DATETIME, ForeignKey, Enum, DateTime
+from enum import Enum as UserEnum
+
 from flask_login import UserMixin
-from sqlalchemy.orm import relationship
-from enum import Enum as UserEnum, UNIQUE
+from sqlalchemy import Column, Integer, String, DATETIME, Enum, ForeignKey
+
 from StudentManagement import db, app
 
 
 class BaseModel(db.Model):
     __abstract__ = True  # Để đánh dấu đây là lớp trừu tượng
     id = Column(Integer, primary_key=True, autoincrement=True)
-    code = Column(String(10), nullable=False, unique=True)
     last_name = Column(String(50), nullable=False)
     first_name = Column(String(50), nullable=False)
     phone = Column(String(15), nullable=True)
@@ -31,10 +31,17 @@ class User(BaseModel, UserMixin):
     user_role = Column(Enum(UserRole), default=UserRole.TEACHER)
     username = Column(String(50), nullable=False, unique=True)
     password = Column(String(200), nullable=False)  # Lưu mật khẩu đã hash
+    code = Column(String(10), nullable=False, unique=True)
 
     def __repr__(self):
         return f'<User {self.username}>'
 
+
+# Tạo bảng học sinh
+class Student(BaseModel):
+    __tablename__ = 'student'
+    __table_args__ = {'extend_existing': True}
+    address = Column(String(255), nullable=True)
 
 # #Tạo bảng học sinh
 # class Student(BaseModel):

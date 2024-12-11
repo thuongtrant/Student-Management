@@ -1,8 +1,11 @@
-from StudentManagement import db
+import random
+import string
 from datetime import datetime
+
 import bcrypt
+
+from StudentManagement import db
 from models import User
-import random, string
 
 
 # Hàm mã hóa mật khẩu và lưu vào cơ sở dữ liệu

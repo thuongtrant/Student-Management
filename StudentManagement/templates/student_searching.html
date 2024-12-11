@@ -1,0 +1,64 @@
+{% extends "layout/base.html" %}
+
+{% block title %} Employee - Student Searching {% endblock %}
+
+{% block content %}
+<ul class="nav nav-tabs">
+    <li class="nav-item">
+        <a style="color:white;" class="nav-link" href="{{ url_for('student_management') }}">Tiếp nhận học sinh</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link active" href="#">Tra cứu học sinh</a>
+    </li>
+</ul>
+<form style="margin:2% 0 1% auto" class="d-flex">
+    <input class="form-control me-2" type="text" name="kw" placeholder="Nhập tên học sinh để tìm">
+    <button style="color:white;" type="submit" class="btn background-btn border_btn">Search</button>
+</form>
+<div class="container mt-3" style="padding:0;">
+    <table class="table table-striped table-secondary table-hover">
+        <thead class="table-dark">
+        <tr>
+            <th style="width:10%;">Id</th>
+            <th style="width:25%;">Họ và tên đệm</th>
+            <th style="width:15%;">Tên</th>
+            <th style="width:10%;">Lớp</th>
+            <th></th>
+            <th></th>
+            <th></th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for s in students %}
+        <tr>
+            <td>{{ s.id }}</td>
+            <td>{{ s.last_name }}</td>
+            <td>{{ s.first_name }}</td>
+            <td>{{ s.class_id }}</td>
+            <td>
+                <a style="color:white;" class="btn background-btn border_btn"
+                   href="{{ url_for('student_info', student_id=s.id) }}">Xem thông tin</a>
+            </td>
+            <td>
+                <a style="color:white;" class="btn background-btn border_btn"
+                   href="{{ url_for('student_update_info', student_id=s.id) }}">Cập nhật thông tin</a>
+            </td>
+            <td>
+                <a style="color:white;" class="btn background-btn border_btn"
+                   href="{{ url_for('delete_student_confirm', student_id=s.id) }}">Xóa hồ sơ</a>
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% if pages > 1 %}
+    <ul style="display:flex;list-style-type:none;justify-content:flex-end;">
+        {% for i in range(1, pages + 1) %}
+        <li><a style="color:black;background:lightgrey;" class="page-link" href="/student_searching?page={{ i }}">{{ i
+            }}</a></li>
+        {% endfor %}
+    </ul>
+</div>
+
+{% endif %}
+{% endblock %}

@@ -1,0 +1,72 @@
+{% extends "layout/base.html" %}
+
+{% block title %} Employee - Student Management {% endblock %}
+
+{% block content %}
+<ul class="nav nav-tabs">
+    <li class="nav-item">
+        <a class="nav-link active" href="#">Tiếp nhận học sinh</a>
+    </li>
+    <li class="nav-item">
+        <a style="color:white;" class="nav-link" href="{{ url_for('student_searching') }}">Tra cứu học sinh</a>
+    </li>
+</ul>
+<div style="margin:1% 0;">
+    <h2>Thêm học sinh</h2>
+    <form method="post" action="/add_student" enctype="multipart/form-data">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label for="last_name">Họ</label>
+                    <input type="text" class="form-control" id="last_name" name="last_name"
+                           placeholder="Ví dụ: Nguyễn Văn" required>
+                </div>
+                <div class="form-group">
+                    <label for="birth_date">Ngày sinh</label>
+                    <input type="date" class="form-control" id="birth_date" name="birth_date" required>
+                </div>
+                <div class="form-group">
+                    <label for="gender">Giới tính</label>
+                    <select class="form-control" id="gender" name="gender" required>
+                        <option value="">Ví dụ: Nam/Nữ</option>
+                        <option value="Nam">Nam</option>
+                        <option value="Nữ">Nữ</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="address">Địa chỉ</label>
+                    <input type="text" class="form-control" id="address" name="address"
+                           placeholder="Ví dụ: Quận/Huyện/Thành Phố" required>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label for="first_name">Tên</label>
+                    <input type="text" class="form-control" id="first_name" name="first_name" placeholder="Ví dụ: A"
+                           required>
+                </div>
+                <div class="form-group">
+                    <label for="phone">Số điện thoại</label>
+                    <input type="text" class="form-control" id="phone" name="phone" placeholder="Ví dụ: 09xxxxxxxx"
+                           required>
+                </div>
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" class="form-control" id="email" name="email" placeholder="Ví dụ: abc@gmail.com"
+                           required>
+                </div>
+                <div class="form-group">
+                    <label for="photo">Ảnh</label>
+                    <input type="file" class="form-control" id="photo" name="photo">
+                </div>
+            </div>
+        </div>
+        <div class="form-group">
+            <button style="color:white;margin-top:2%;" type="submit" class="btn background-btn border_btn">Thêm học
+                sinh
+            </button>
+        </div>
+    </form>
+</div>
+
+{% endblock %}
