@@ -43,15 +43,7 @@ class Student(BaseModel):
     __table_args__ = {'extend_existing': True}
     address = Column(String(255), nullable=True)
 
-# #Tạo bảng học sinh
-# class Student(BaseModel):
-#     __tablename__ = 'student'
-#
-#     # Các trường riêng của Student, có thể kế thừa từ BaseModel
-#     student_id = Column(Integer, nullable=False)
-#
-#     def __repr__(self):
-#         return f'<Student {self.first_name} {self.last_name}>'
+
 class Teacher(BaseModel):
     __tablename__ = 'teacher'
     __table_args__ = {'extend_existing': True}

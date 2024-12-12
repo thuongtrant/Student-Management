@@ -4,8 +4,6 @@ from sqlalchemy.exc import SQLAlchemyError
 from StudentManagement import db
 import bcrypt
 
-from models import User, Subject
-
 
 def check_login(username, password):
     if username and password:

@@ -44,7 +44,7 @@
                    href="{{ url_for('student_update_info', student_id=s.id) }}">Cập nhật thông tin</a>
             </td>
             <td>
-                <a style="color:white;" class="btn background-btn border_btn"
+                <a style="color:white;background:#8a212b;" class="btn background-btn border_btn"
                    href="{{ url_for('delete_student_confirm', student_id=s.id) }}">Xóa hồ sơ</a>
             </td>
         </tr>
@@ -58,7 +58,6 @@
             }}</a></li>
         {% endfor %}
     </ul>
+    {% endif %}
 </div>
-
-{% endif %}
 {% endblock %}

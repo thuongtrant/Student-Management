@@ -1,29 +1,20 @@
 from datetime import datetime
 from math import ceil
-
 import bcrypt
 from flask import jsonify
-from flask import render_template, request, redirect, url_for, flash
 from flask_login import login_user, logout_user, login_required, LoginManager, current_user
 from password_strength import PasswordPolicy
 from sqlalchemy import and_
-
 from flask import render_template, request, redirect, url_for, flash, session
 from pyexpat.errors import messages
-
 from StudentManagement import app, db
-from StudentManagement.models import Rule, Subject, SchoolClass
 from dao import load_students
-from models import User, UserRole, Student
+from models import User, UserRole, Student, Rule, Subject, SchoolClass, Teacher
 from send_email import send_mail
-from utils import check_login  # Thêm import check_login từ utils.py
 from models import User, UserRole
 from utils import (check_login, get_all_subjects, get_all_teachers, get_subject_by_id, add_subject, update_subject, delete_subject
 , get_all_classes, get_all_teachers, add_class,get_class_by_id, update_class_by_id, delete_class_by_id)
-from StudentManagement.models import Rule, Subject, SchoolClass, Teacher
-from flask import jsonify
-import bcrypt
-from password_strength import PasswordPolicy
+
 
 # Khởi tạo LoginManager
 login_manager = LoginManager()
