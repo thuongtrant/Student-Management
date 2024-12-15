@@ -1,20 +1,21 @@
 from datetime import datetime
 from math import ceil
+
 import bcrypt
 from flask import jsonify
+from flask import render_template, request, redirect, url_for, flash
 from flask_login import login_user, logout_user, login_required, LoginManager, current_user
 from password_strength import PasswordPolicy
 from sqlalchemy import and_
-from flask import render_template, request, redirect, url_for, flash, session
-from pyexpat.errors import messages
+
 from StudentManagement import app, db
 from dao import load_students
-from models import User, UserRole, Student, Rule, Subject, SchoolClass, Teacher
-from send_email import send_mail
+from models import Student, Rule
 from models import User, UserRole
-from utils import (check_login, get_all_subjects, get_all_teachers, get_subject_by_id, add_subject, update_subject, delete_subject
-, get_all_classes, get_all_teachers, add_class,get_class_by_id, update_class_by_id, delete_class_by_id)
-
+from send_email import send_mail
+from utils import (check_login, get_all_subjects, get_subject_by_id, add_subject, update_subject,
+                   delete_subject
+, get_all_classes, get_all_teachers, add_class, get_class_by_id, update_class_by_id, delete_class_by_id)
 
 # Khởi tạo LoginManager
 login_manager = LoginManager()
@@ -175,6 +176,7 @@ def add_student():
                 email = request.form.get('email')
                 address = request.form.get('address')
                 file = request.files['photo']
+                grade = request.form.get('grade')
                 new_student = Student(
                     first_name=first_name,
                     last_name=last_name,
@@ -184,6 +186,7 @@ def add_student():
                     email=email,
                     address=address,
                     image_link=file.filename,
+                    grade=grade
                 )
                 db.session.add(new_student)
                 db.session.commit()
@@ -417,19 +420,19 @@ def class_management():
 
     classes = get_all_classes()
     teachers = get_all_teachers()
-    return render_template('class_management.html', classes=classes, teachers = teachers)
+    return render_template('class_management.html', classes=classes, teachers=teachers)
 
 
 # Lấy dữ liệu để hiện thị trong trang sửa lớp học
 @app.route('/edit_class/<int:class_id>', methods=['GET'])
 def edit_class(class_id):
-    classById =  get_class_by_id(class_id)
+    classById = get_class_by_id(class_id)
     if not classById:
         flash('Lớp học không tồn tại!', 'danger')
         return redirect(url_for('class_management'))
     available_teachers = get_all_teachers()
 
-    return render_template('edit_class.html', classById=classById, teachers = available_teachers)
+    return render_template('edit_class.html', classById=classById, teachers=available_teachers)
 
 
 # Tiến hành sửa lớp học
@@ -442,7 +445,8 @@ def update_class(class_id):
     description = request.form.get('description')
     teacher_id = request.form.get('teacher_id')
 
-    success, message = update_class_by_id(class_id, class_name, class_code, grade, student_count, description, teacher_id)
+    success, message = update_class_by_id(class_id, class_name, class_code, grade, student_count, description,
+                                          teacher_id)
     if not success:
         flash(message, 'danger')
     else:

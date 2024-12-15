@@ -1,8 +1,9 @@
-from models import User, Subject, Teacher, SchoolClass, Rule
+import bcrypt
 from flask import flash
 from sqlalchemy.exc import SQLAlchemyError
+
 from StudentManagement import db
-import bcrypt
+from models import User, Subject, Teacher, SchoolClass, Rule
 
 
 def check_login(username, password):
@@ -27,17 +28,22 @@ def get_subject_by_id(subject_id):
 def get_all_subjects():
     return Subject.query.all()
 
+
 # Trả về danh sách các giáo viên chưa dạy môn học nào
 def get_teachers_without_subject():
-    return Teacher.query.filter(~Teacher.id.in_(db.session.query(Subject.teacher_id).filter(Subject.teacher_id.isnot(None)))).all()
+    return Teacher.query.filter(
+        ~Teacher.id.in_(db.session.query(Subject.teacher_id).filter(Subject.teacher_id.isnot(None)))).all()
+
 
 # Lấy tất cả giáo viên
 def get_all_teachers():
     return Teacher.query.all()
 
+
 # Lấy môn học theo ID
 def get_subject_by_id(subject_id):
     return Subject.query.get(subject_id)
+
 
 # Thêm môn học mới
 def add_subject(subject_name, subject_code, description, teacher_id):
@@ -50,6 +56,7 @@ def add_subject(subject_name, subject_code, description, teacher_id):
         db.session.rollback()
         flash(f"Lỗi khi thêm môn học: {str(e)}", "danger")
         return False
+    # CHỖ NÀY SỬA THÀNH GỌI ADD_SUBJECT XONG TRUYỀN MẤY GIÁ TRỊ VÀO THEO MẪU add_subject(code,name,des) BÊN HTML CŨN ĐƯỢC
 
 # Cập nhật thông tin môn học
 def update_subject(subject_id, subject_name, subject_code, description, teacher_id):
@@ -71,6 +78,7 @@ def update_subject(subject_id, subject_name, subject_code, description, teacher_
         flash(f"Có lỗi xảy ra khi cập nhật môn học: {str(e)}", 'danger')
         return False
 
+
 # Xóa môn học
 def delete_subject(subject_id):
     subject = get_subject_by_id(subject_id)
@@ -90,9 +98,11 @@ def delete_subject(subject_id):
 def get_all_classes():
     return SchoolClass.query.all()
 
+
 # Hàm lấy danh sách tất cả giáo viên
 def get_all_teachers():
     return Teacher.query.all()
+
 
 # Hàm thêm lớp học mới
 def add_class(class_name, class_code, grade, student_count, description, teacher_id):
@@ -120,9 +130,11 @@ def add_class(class_name, class_code, grade, student_count, description, teacher
         db.session.rollback()
         return False, f'Có lỗi xảy ra: {str(e)}'
 
+
 # Hàm lấy thông tin lớp học theo ID
 def get_class_by_id(class_id):
     return SchoolClass.query.get(class_id)
+
 
 # Hàm cập nhật lớp học
 def update_class_by_id(class_id, class_name, class_code, grade, student_count, description, teacher_id):
@@ -155,6 +167,7 @@ def update_class_by_id(class_id, class_name, class_code, grade, student_count, d
     except Exception as e:
         db.session.rollback()
         return False, f'Có lỗi xảy ra khi cập nhật lớp học: {str(e)}'
+
 
 # Hàm xóa lớp học
 def delete_class_by_id(class_id):

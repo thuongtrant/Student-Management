@@ -11,8 +11,8 @@ class BaseModel(db.Model):
     id = Column(Integer, primary_key=True, autoincrement=True)
     last_name = Column(String(50), nullable=False)
     first_name = Column(String(50), nullable=False)
-    phone = Column(String(15), nullable=True)
-    email = Column(String(100), nullable=True)
+    phone = Column(String(15), nullable=True, unique=True)
+    email = Column(String(100), nullable=True, unique=True)
     image_link = Column(String(255), nullable=True)
     gender = Column(String(10), nullable=True)
     birth_day = Column(DATETIME, nullable=True)
@@ -42,16 +42,30 @@ class Student(BaseModel):
     __tablename__ = 'student'
     __table_args__ = {'extend_existing': True}
     address = Column(String(255), nullable=True)
+    grade = Column(Integer, nullable=False)
+
+    def __str__(self):
+        return f"{self.first_name} {self.last_name}"
 
 
-class Teacher(BaseModel):
+# Tạo bản khối
+class Grade(db.Model):
+    __tablename__ = 'grade'
+    __table_args__ = {'extend_existing': True}
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(Integer, nullable=False)
+
+
+# Tạo bảng giáo viên
+class Teacher(db.Model):
     __tablename__ = 'teacher'
     __table_args__ = {'extend_existing': True}
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(Integer, ForeignKey('user.id'), nullable=False)
+    subject_id = Column(Integer, ForeignKey('subject.id'), nullable=True)
 
-    class_id = db.Column(db.Integer, db.ForeignKey('schoolclass.id'), nullable=True,
-                         unique=True)
     def __str__(self):
-        return f"{self.last_name} {self.first_name}"
+        return f"{self.first_name} {self.last_name}"
 
 
 # Tạo bảng môn học
@@ -62,7 +76,6 @@ class Subject(db.Model):
     code = db.Column(db.String(10), nullable=False, unique=True)
     name = db.Column(db.String(100), nullable=False)
     description = db.Column(db.String(255))
-    teacher_id = db.Column(Integer, ForeignKey('teacher.id'), nullable = True)
 
     def __repr__(self):
         return f'<Subject {self.name}>'
@@ -76,9 +89,7 @@ class SchoolClass(db.Model):
     code = db.Column(db.String(10), nullable=False, unique=True)
     name = db.Column(db.String(100), nullable=False)
     student_count = db.Column(db.Integer, nullable=False)
-    grade = db.Column(db.String(2), nullable=False)
     description = db.Column(db.String(255))
-    teacher_id = db.Column(Integer, ForeignKey('teacher.id'), nullable = True, unique=True)
 
     def __repr__(self):
         return f'<SchoolClass {self.name}>'
@@ -100,7 +111,7 @@ class Rule(db.Model):
 if __name__ == '__main__':
     with app.app_context():
         pass
-        # db.create_all()
+        db.create_all()
         # User.__table__.create(db.engine)
 
         # Rule.__table__.create(db.engine)
@@ -151,7 +162,6 @@ if __name__ == '__main__':
         # SchoolClass.__table__.create(db.engine)
 
         # Teacher.__table__.create(db.engine)
-
 
         # teachers = [
         #     {

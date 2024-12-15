@@ -1,7 +1,5 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
-import cloudinary
-from flask_login import login_manager, LoginManager
 
 app = Flask(__name__)
 app.secret_key = '@#$%styifhd*^f&*($%^s&*32R'

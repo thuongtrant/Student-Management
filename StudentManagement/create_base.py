@@ -5,7 +5,7 @@ from datetime import datetime
 import bcrypt
 
 from StudentManagement import db
-from models import User
+from models import User, Teacher, Subject
 
 
 # Hàm mã hóa mật khẩu và lưu vào cơ sở dữ liệu
@@ -41,6 +41,13 @@ def add_user(user_role, username, last_name, first_name, phone, email, image_lin
 
     db.session.add(new_user)
     db.session.commit()  # Xác nhận thay đổi trong cơ sở dữ liệu
+
+    # Nếu vai trò là TEACHER, tự động thêm vào bảng teacher
+    if user_role.upper() == "TEACHER":
+        new_teacher = Teacher(user_id=new_user.id)
+        db.session.add(new_teacher)
+        db.session.commit()
+
     return "User added successfully"
 
 
@@ -66,3 +73,19 @@ def random_password():
     random.shuffle(password)
 
     return ''.join(password)
+
+
+# Hàm thêm môn học
+def add_subject(code, name, description):
+    existing_subject = db.session.query(Subject).filter_by(name=name).first()
+    if existing_subject:
+        return "Subject already exists"
+    code = code + datetime.now().strftime("%d%m")
+    new_subject = Subject(
+        code=code,
+        name=name,
+        description=description
+    )
+    db.session.add(new_subject)
+    db.session.commit()
+    return "Subject added successfully"
