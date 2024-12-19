@@ -9,13 +9,14 @@ from password_strength import PasswordPolicy
 from sqlalchemy import and_
 
 from StudentManagement import app, db
+from StudentManagement.utils import get_teacher_with_subject
 from dao import load_students
 from models import Student, Rule
 from models import User, UserRole
 from send_email import send_mail
 from utils import (check_login, get_all_subjects, get_subject_by_id, add_subject, update_subject,
                    delete_subject
-, get_all_classes, get_all_teachers, add_class, get_class_by_id, update_class_by_id, delete_class_by_id)
+, get_all_classes, get_all_teachers, add_class, get_class_by_id, update_class_by_id, delete_class_by_id, get_available_teachers)
 
 # Khởi tạo LoginManager
 login_manager = LoginManager()
@@ -354,14 +355,15 @@ def manage_subjects():
         subject_name = request.form.get('subject_name')
         subject_code = request.form.get('subject_code')
         description = request.form.get('description')
-        teacher_id = request.form.get('teacher_id')
+        teacher_ids = request.form.getlist('teacher_ids[]')
+        teacher_ids = [int(id) for id in teacher_ids if id]
 
         # Thêm môn học
-        if add_subject(subject_name, subject_code, description, teacher_id):
+        if add_subject(subject_name, subject_code, description, teacher_ids):
             return redirect(url_for('manage_subjects'))
 
     subjects = get_all_subjects()
-    teachers = get_all_teachers()
+    teachers = get_available_teachers()
     return render_template('subject_management.html', subjects=subjects, teachers=teachers)
 
 
@@ -373,8 +375,9 @@ def edit_subject(subject_id):
         return redirect(url_for('manage_subjects'))
 
     # Lấy danh sách giáo viên
-    available_teachers = get_all_teachers()
-    return render_template('edit_subject.html', subject=subject, teachers=available_teachers)
+    teachers_available = get_all_teachers()
+    teacher_with_subject = get_teacher_with_subject(subject_id)
+    return render_template('edit_subject.html', subject=subject, teachers=teachers_available, teacher_with_subject = teacher_with_subject)
 
 
 @app.route('/update_subject/<int:subject_id>', methods=['POST'])
@@ -383,11 +386,15 @@ def update_subject_route(subject_id):
     subject_name = request.form.get('subject_name')
     subject_code = request.form.get('subject_code')
     description = request.form.get('description')
-    teacher_id = request.form.get('teacher_id')
+    teacher_ids = request.form.getlist('teacher_ids[]')
+    teacher_ids = [int(id) for id in teacher_ids if id]
 
     # Cập nhật môn học
-    if update_subject(subject_id, subject_name, subject_code, description, teacher_id):
+    if update_subject(subject_id, subject_name, subject_code, description, teacher_ids):
         return redirect(url_for('manage_subjects'))
+    else:
+        flash('Cập nhật môn học thất bại!', 'danger')
+        return redirect(url_for('edit_subject', subject_id=subject_id))
 
 
 @app.route('/api/delete-subject/<int:subject_id>', methods=['DELETE'])

@@ -24,32 +24,42 @@ def get_subject_by_id(subject_id):
     return Subject.query.get(subject_id)
 
 
-# Lấy tất cả môn học
-def get_all_subjects():
-    return Subject.query.all()
-
-
-# Trả về danh sách các giáo viên chưa dạy môn học nào
-def get_teachers_without_subject():
-    return Teacher.query.filter(
-        ~Teacher.id.in_(db.session.query(Subject.teacher_id).filter(Subject.teacher_id.isnot(None)))).all()
-
-
-# Lấy tất cả giáo viên
-def get_all_teachers():
-    return Teacher.query.all()
-
-
 # Lấy môn học theo ID
 def get_subject_by_id(subject_id):
     return Subject.query.get(subject_id)
 
 
+def get_all_subjects():
+    """Lấy tất cả môn học kèm thông tin giáo viên"""
+    subjects = Subject.query.all()
+    result = []
+    for subject in subjects:
+        # Lấy tất cả giáo viên của môn học này
+        teachers = Teacher.query.filter_by(subject_id=subject.id).all()
+
+        subject_info = {
+            'id': subject.id,
+            'code': subject.code,
+            'name': subject.name,
+            'description': subject.description,
+            'teachers': teachers
+        }
+        result.append(subject_info)
+    return result
+
 # Thêm môn học mới
-def add_subject(subject_name, subject_code, description, teacher_id):
-    new_subject = Subject(name=subject_name, code=subject_code, description=description, teacher_id=teacher_id)
+def add_subject(subject_name, subject_code, description, teacher_ids):
+    new_subject = Subject(name=subject_name, code=subject_code, description=description)
     try:
         db.session.add(new_subject)
+        db.session.commit()
+        if teacher_ids:
+            for teacher_id in teacher_ids:
+                teacher = Teacher.query.get(teacher_id)
+                if teacher:
+                    teacher.subject_id = new_subject.id
+                    db.session.add(teacher)
+
         db.session.commit()
         return True
     except SQLAlchemyError as e:
@@ -58,32 +68,55 @@ def add_subject(subject_name, subject_code, description, teacher_id):
         return False
     # CHỖ NÀY SỬA THÀNH GỌI ADD_SUBJECT XONG TRUYỀN MẤY GIÁ TRỊ VÀO THEO MẪU add_subject(code,name,des) BÊN HTML CŨN ĐƯỢC
 
-# Cập nhật thông tin môn học
-def update_subject(subject_id, subject_name, subject_code, description, teacher_id):
-    subject = get_subject_by_id(subject_id)
-    if not subject:
-        flash('Môn học không tồn tại!', 'danger')
-        return False
-
+def update_subject(subject_id, subject_name, subject_code, description, teacher_ids):
     try:
-        subject.name = subject_name
-        subject.code = subject_code
-        subject.description = description
-        subject.teacher_id = teacher_id if teacher_id else None
-        db.session.commit()
-        flash('Cập nhật môn học thành công!', 'success')
-        return True
-    except SQLAlchemyError as e:
-        db.session.rollback()
-        flash(f"Có lỗi xảy ra khi cập nhật môn học: {str(e)}", 'danger')
-        return False
+        # Kiểm tra môn học tồn tại
+        subject = Subject.query.get(subject_id)
+        if not subject:
+            return False, 'Môn học không tồn tại!'
 
+        # Cập nhật thông tin môn học
+        db.session.execute(
+            db.update(Subject)
+            .where(Subject.id == subject_id)
+            .values(
+                name=subject_name,
+                code=subject_code,
+                description=description
+            )
+        )
+
+        # # Reset tất cả giáo viên cũ
+        # db.session.execute(
+        #     db.update(Teacher)
+        #     .where(Teacher.subject_id == subject_id)
+        #     .values(subject_id=None)
+        # )
+
+        # Cập nhật giáo viên mới
+        if teacher_ids:
+            for teacher_id in teacher_ids:
+                db.session.execute(
+                    db.update(Teacher)
+                    .where(Teacher.id == int(teacher_id))
+                    .values(subject_id=subject_id)
+                )
+
+        # Commit các thay đổi
+        db.session.commit()
+        return True, 'Cập nhật môn học thành công!'
+
+    except Exception as e:
+        db.session.rollback()
+        return False, f"Lỗi khi cập nhật môn học: {str(e)}"
 
 # Xóa môn học
 def delete_subject(subject_id):
     subject = get_subject_by_id(subject_id)
     if subject:
         try:
+            Teacher.query.filter_by(subject_id=subject_id).update({Teacher.subject_id: None})
+
             db.session.delete(subject)
             db.session.commit()
             return True, 'Môn học đã được xóa thành công!'
@@ -94,14 +127,29 @@ def delete_subject(subject_id):
         return False, 'Không tìm thấy môn học!'
 
 
+
+def get_available_teachers():
+    """Lấy danh sách giáo viên chưa được phân công môn học"""
+    return db.session.query(Teacher, User)\
+        .join(User, Teacher.user_id == User.id)\
+        .filter(Teacher.subject_id == None)\
+        .all()
+
+def get_teacher_with_subject(subject_id = None):
+    return  db.session.query(Teacher, User)\
+            .join(User, Teacher.user_id == User.id)\
+            .filter(Teacher.subject_id == subject_id)\
+            .all()
+
+# Lấy tất cả giáo viên
+def get_all_teachers():
+    return db.session.query(Teacher, User) \
+        .join(User, Teacher.user_id == User.id) \
+        .all()
+
 # Hàm lấy danh sách tất cả lớp học
 def get_all_classes():
     return SchoolClass.query.all()
-
-
-# Hàm lấy danh sách tất cả giáo viên
-def get_all_teachers():
-    return Teacher.query.all()
 
 
 # Hàm thêm lớp học mới
