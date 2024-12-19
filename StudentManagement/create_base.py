@@ -5,7 +5,7 @@ from datetime import datetime
 import bcrypt
 
 from StudentManagement import db
-from models import User, Teacher, Subject
+from models import User, Teacher, Subject, Grade, Semester
 
 
 # Hàm mã hóa mật khẩu và lưu vào cơ sở dữ liệu
@@ -89,3 +89,30 @@ def add_subject(code, name, description):
     db.session.add(new_subject)
     db.session.commit()
     return "Subject added successfully"
+
+
+# Hàm thêm khối
+def add_grade(name):
+    existing_grade = db.session.query(Grade).filter_by(name=name).first()
+    if existing_grade:
+        return "Grade already exists"
+    new_grade = Grade(name=name)
+    db.session.add(new_grade)
+    db.session.commit()
+    return "Grade added successfully"
+
+
+# Hàm thêm học kì
+def add_semester(name, start_day, end_day):
+    existing_semester = db.session.query(Semester).filter_by(start_day=start_day).first()
+    if existing_semester:
+        return "Semester already exists"
+    new_semester = Semester(
+        name=name,
+        start_day=start_day,
+        end_day=end_day
+    )
+    db.session.add(new_semester)
+    db.session.commit()
+    return "Semester added successfully"
+

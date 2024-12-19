@@ -290,6 +290,13 @@ def delete_student():
     return redirect(url_for('student_searching'))
 
 
+# Phân lớp tự động
+@app.route('/automatic_class_management')
+@login_required
+def automatic_class_management():
+    return render_template("automatic_class_management.html")
+
+
 # Định nghĩa yêu cầu mật khẩu
 policy = PasswordPolicy.from_names(
     length=8,  # ít nhất 8 ký tự

@@ -58,6 +58,7 @@ def add_subject(subject_name, subject_code, description, teacher_id):
         return False
     # CHỖ NÀY SỬA THÀNH GỌI ADD_SUBJECT XONG TRUYỀN MẤY GIÁ TRỊ VÀO THEO MẪU add_subject(code,name,des) BÊN HTML CŨN ĐƯỢC
 
+
 # Cập nhật thông tin môn học
 def update_subject(subject_id, subject_name, subject_code, description, teacher_id):
     subject = get_subject_by_id(subject_id)

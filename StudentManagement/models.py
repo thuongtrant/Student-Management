@@ -1,7 +1,7 @@
 from enum import Enum as UserEnum
 
 from flask_login import UserMixin
-from sqlalchemy import Column, Integer, String, DATETIME, Enum, ForeignKey
+from sqlalchemy import Column, Integer, String, DATETIME, Enum, ForeignKey, Float
 
 from StudentManagement import db, app
 
@@ -48,12 +48,77 @@ class Student(BaseModel):
         return f"{self.first_name} {self.last_name}"
 
 
-# Tạo bản khối
+# Tạo bảng học sinh - lớp
+class Student_Schoolclass(db.Model):
+    __tablename__ = 'student_schoolclass'
+    __table_args__ = {'extend_existing': True}
+    student_id = Column(Integer, ForeignKey('student.id'), primary_key=True, nullable=False)
+    class_id = Column(Integer, ForeignKey('schoolclass.id'), primary_key=True, nullable=False)
+    semester_id = Column(Integer, ForeignKey('semester.id'), primary_key=True, nullable=False)
+    homeroom_teacher_id = Column(Integer, ForeignKey('teacher.id'), nullable=False)
+    description = Column(String(255), nullable=True)
+
+
+# Tạo bảng loại điểm
+class Score_Type(db.Model):
+    __tablename__ = 'score_type'
+    __table_args__ = {'extend_existing': True}
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String(50), nullable=False)
+
+
+# Tạo cột điểm
+class Score_Col(db.Model):
+    __tablename__ = 'score'
+    __table_args__ = {'extend_existing': True}
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    value = Column(Float, nullable=True)
+    last_change = Column(DATETIME, nullable=True)
+    type_id = Column(Integer, ForeignKey('score_type.id'), nullable=False)
+    board_id = Column(Integer, ForeignKey('score_board.id'), nullable=False)
+
+
+# Tạo bảng điểm 1 môn
+class Score_Board(db.Model):
+    __tablename__ = 'score_board'
+    __table_args__ = {'extend_existing': True}
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    description = Column(String(255), nullable=True)
+
+
+# Tạo bảng giáo viên - lớp
+class Teacher_Schoolclass(db.Model):
+    __tablename__ = 'teacher_schoolclass'
+    __table_args__ = {'extend_existing': True}
+    teacher_id = Column(Integer, ForeignKey('teacher.id'), primary_key=True, nullable=False)
+    class_id = Column(Integer, ForeignKey('schoolclass.id'), primary_key=True, nullable=False)
+    semester_id = Column(Integer, ForeignKey('semester.id'), primary_key=True, nullable=False)
+    board_id = Column(Integer, ForeignKey('score_board.id'), nullable=False)
+    description = Column(String(255), nullable=True)
+
+
+# Tạo bảng khối
 class Grade(db.Model):
     __tablename__ = 'grade'
     __table_args__ = {'extend_existing': True}
     id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(Integer, nullable=False, unique=True)
+
+    def _str_(self):
+        return f"{self.name}"
+
+
+# Tạo bảng học kì
+class Semester(db.Model):
+    __tablename__ = 'semester'
+    __table_args__ = {'extend_existing': True}
+    id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(Integer, nullable=False)
+    start_day = Column(DATETIME, nullable=False, unique=True)
+    end_day = Column(DATETIME, nullable=False, unique=True)
+
+    def __str__(self):
+        return f"Học kì {self.type} năm học {self.start_day} - {self.end_day}"
 
 
 # Tạo bảng giáo viên
@@ -86,10 +151,10 @@ class SchoolClass(db.Model):
     __tablename__ = 'schoolclass'
     __table_args__ = {'extend_existing': True}
     id = db.Column(db.Integer, primary_key=True)
-    code = db.Column(db.String(10), nullable=False, unique=True)
-    name = db.Column(db.String(100), nullable=False)
+    name = db.Column(db.String(100), nullable=False, unique=True)
     student_count = db.Column(db.Integer, nullable=False)
     description = db.Column(db.String(255))
+    grade_id = db.Column(db.Integer, ForeignKey('grade.id'), nullable=False)
 
     def __repr__(self):
         return f'<SchoolClass {self.name}>'

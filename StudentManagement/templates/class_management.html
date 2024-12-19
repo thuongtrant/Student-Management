@@ -1,28 +1,26 @@
 {% extends 'layout/base.html' %}
 
-{% block title %} Quản lý lớp học {% endblock %}
+{% block title %} ClassManagement - Student Management {% endblock %}
 {% block js %}
 <script src="{{ url_for('static', filename='js/delete_class.js') }}"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
 {% endblock %}
 
 {% block content %}
+<ul class="nav nav-tabs">
+    <li class="nav-item">
+        <a class="nav-link active" href="#">Quản lý lớp học</a>
+    </li>
+    <li class="nav-item">
+        <a style="color:white;" class="nav-link" href="{{ url_for('automatic_class_management') }}">Phân lớp tự động</a>
+    </li>
+</ul>
 <br>
 <div class="row">
     <!-- Form thêm lớp học -->
     <div class="col-md-6">
         <h2 class="text-center">Thêm lớp học</h2>
         <form method="post" action="{{ url_for('class_management') }}" enctype="multipart/form-data">
-            <div class="form-group">
-                <label for="class_name">Tên lớp học</label>
-                <input type="text" class="form-control" id="class_name" name="class_name" placeholder="Ví dụ: A"
-                       required>
-            </div>
-            <div class="form-group">
-                <label for="class_code">Mã lớp học</label>
-                <input type="text" class="form-control" id="class_code" name="class_code" placeholder="Ví dụ: L01"
-                       required>
-            </div>
             <div class="form-group">
                 <label for="class_grade">Khối</label>
                 <select class="form-control" id="class_grade" name="class_grade" required>
@@ -39,7 +37,7 @@
 
             <div class="form-group">
                 <label for="description">Mô tả</label>
-                <input type="text" class="form-control" id="description" name="description" placeholder="Mô tả môn học">
+                <input type="text" class="form-control" id="description" name="description" placeholder="Mô tả lớp học">
             </div>
             <div class="form-group">
                 <label for="teacher_id">Giáo viên chủ nhiệm</label>
