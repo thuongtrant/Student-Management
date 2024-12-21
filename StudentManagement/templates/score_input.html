@@ -1,0 +1,95 @@
+{% extends 'layout/base.html' %}
+
+{% block title %}Nhập điểm{% endblock %}
+
+{% block js %}
+<script src="{{ url_for('static', filename='js/score_input.js') }}"></script>
+{% endblock %}
+
+{% block content %}
+<h1 class="text-center mt-4">NHẬP ĐIỂM KỲ I - 2024</h1>
+
+<div class="card mt-4">
+    <div class="card-body">
+        <div class="row mb-3">
+            <div class="col-md-4">
+                <label class="form-label">Khối</label>
+                <select class="form-select" id="droplistKhoi">
+                    <option value="">Chọn khối</option>
+                    <option value="10">10</option>
+                    <option value="11">11</option>
+                    <option value="12">12</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Lớp</label>
+                <select class="form-select" id="droplistLop">
+                    <option value="">Chọn lớp</option>
+                    {% for class in classes %}
+                    <option value="{{ class.id }}">{{ class.name }}</option>
+                    {% endfor %}
+                </select>
+
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Môn học</label>
+                <select class="form-select" id="droplistMonHoc">
+                    <option value="">Chọn môn học</option>
+                    {% for subject in subjects %}
+                    <option value="{{ subject.id }}">{{ subject.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover">
+                <thead>
+                <tr>
+                    <th>STT</th>
+                    <th>Họ và tên</th>
+                    <th>Điểm 15'</th>
+                    <th>
+                        <button class="btn btn-sm btn-link " id="btnAddColumn">
+                            <i class="fas fa-plus " style="color: black;"></i>
+                        </button>
+                    </th>
+                    <th>Điểm TB</th>
+                </tr>
+                </thead>
+                <tbody id="studentList">
+                <!-- Danh sách học sinh sẽ được load động -->
+                </tbody>
+            </table>
+        </div>
+        <!-- Modal chọn loại điểm -->
+        <div class="modal fade" id="addScoreModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Thêm cột điểm</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label class="form-label">Chọn loại điểm:</label>
+                            <select class="form-select" id="scoreType">
+                                <option value="mieng">Điểm miệng (Hệ số 1)</option>
+                                <option value="15p">Điểm 15' (Hệ số 1)</option>
+                                <option value="45p">Điểm 45' (Hệ số 2)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                        <button type="button" class="btn background-btn color_white" id="confirmAddColumn">Thêm</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="text-center mt-3">
+            <button class="btn background-btn color_white" id="btnLuu">Lưu</button>
+        </div>
+    </div>
+</div>
+{% endblock %}

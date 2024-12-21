@@ -7,26 +7,20 @@
 {% endblock %}
 
 {% block content %}
-<ul class="nav nav-tabs">
-    <li class="nav-item">
-        <a class="nav-link active" href="#">Quản lý lớp học</a>
-    </li>
-    <li class="nav-item">
-        <a style="color:white;" class="nav-link" href="{{ url_for('automatic_class_management') }}">Phân lớp tự động</a>
-    </li>
-</ul>
 <br>
 <div class="row">
     <!-- Form thêm lớp học -->
     <div class="col-md-6">
-        <h2 class="text-center">Thêm lớp học</h2>
+        <h4 class="text-center">Thêm lớp học thủ công</h4>
         <form method="post" action="{{ url_for('class_management') }}" enctype="multipart/form-data">
             <div class="form-group">
                 <label for="class_grade">Khối</label>
                 <select class="form-control" id="class_grade" name="class_grade" required>
-                    <option value="10">Khối 10</option>
-                    <option value="11">Khối 11</option>
-                    <option value="12">Khối 12</option>
+                    {% for grade in grades %}
+                    <option value="{{ grade.id }}">
+                        Khối {{ grade.name }}
+                    </option>
+                    {% endfor %}
                 </select>
             </div>
             <div class="form-group">
@@ -43,9 +37,9 @@
                 <label for="teacher_id">Giáo viên chủ nhiệm</label>
                 <select class="form-control" id="teacher_id" name="teacher_id">
                     <option value="">Chọn giáo viên</option>
-                    {% for teacher in teachers %}
+                    {% for teacher, user in teachers %}
                     <option value="{{ teacher.id }}">
-                        {{ teacher.last_name }} {{ teacher.first_name }}
+                        {{ user.last_name }} {{ user.first_name }}
                     </option>
                     {% endfor %}
                 </select>
@@ -55,6 +49,23 @@
             <div class="form-group">
                 <button type="submit" class="border_btn" style="background-color: #32383e; color: white;">Thêm lớp học
                 </button>
+            </div>
+        </form>
+        <h4 class="text-center">Phân lớp tự động</h4>
+        <form method="post" action="{{ url_for('automatic_class_management') }}" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="class_grade">Khối</label>
+                <select class="form-control" id="class_grade_auto" name="class_grade_auto" required>
+                    {% for grade in grades %}
+                    <option value="{{ grade.id }}">
+                        Khối {{ grade.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <br>
+            <div class="form-group">
+                <button type="submit" class="border_btn" style="background-color: #32383e; color: white;">Phân lớp</button>
             </div>
             <br>
         </form>
@@ -70,21 +81,20 @@
                 <th>Tên lớp học</th>
                 <th>Sĩ số</th>
                 <th>Khối</th>
-                <th>Giáo viên</th>
+                <th>Giáo viên chủ nhiệm</th>
                 <th>Thao tác</th>
             </tr>
             </thead>
             <tbody>
-            {% for class in classes %}
+            {% for class, grade, teacher, user in classes %}
             <tr id="class-{{ class.id }}">
-                <td>{{ class.code }}</td>
-                <td>{{ class.name }}</td>
+                <td>{{ class.id }}</td>
+                <td>{{ grade.name }}/{{class.name}}</td>
                 <td>{{ class.student_count }}</td>
-                <th>{{ class.grade }}</th>
+                <th>{{ grade.name }}</th>
                 <td>
-                    {% if class.teacher_id %}
-                    {% set teacher = teachers|selectattr('id', 'equalto', class.teacher_id)|first %}
-                    {{ teacher.last_name }} {{ teacher.first_name }}
+                    {% if teacher.id %}
+                    {{ user.last_name }} {{ user.first_name }}
                     {% else %}
                     Không có giáo viên
                     {% endif %}

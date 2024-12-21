@@ -22,24 +22,27 @@
                 <label for="description">Mô tả</label>
                 <textarea class="form-control" id="description" name="description">{{ subject.description }}</textarea>
             </div>
+
             <div class="form-group">
-                <label for="teacher">Giáo viên</label>
-                <select class="form-control" id="teacher" name="teacher_id">
-                    <option value="">Chọn giáo viên</option>
-                    {% for teacher in teachers %}
-                    <option value="{{ teacher.id }}" {% if teacher.id== subject.teacher_id %}selected{% endif %}>
-                        {{ teacher.last_name }} {{ teacher.first_name }}
+                <label for="teacher_ids">Giáo viên</label>
+                <select class="form-select" id="teacher_ids" name="teacher_ids[]" multiple>
+                    {% for teacher, user in teachers %}
+                    <option value="{{ teacher.id }}" {% if teacher.subject_id== subject.id %}selected{% endif %}>
+                        {{ user.last_name }} {{ user.first_name }}
                     </option>
                     {% endfor %}
                 </select>
+                <small class="form-text text-muted">Giữ Ctrl (Windows) hoặc Command (Mac) để chọn nhiều giáo
+                    viên</small>
+
             </div>
             <br>
             <button type="submit" class="btn background-btn border_btn" style="color :white">Lưu thay đổi</button>
+            <br>
         </form>
     </div>
 </div>
 {% endblock %}
-
 {% block footer %}
 {% include 'layout/footer.html'%}
 {% endblock %}

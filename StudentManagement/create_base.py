@@ -3,9 +3,11 @@ import string
 from datetime import datetime
 
 import bcrypt
+from sqlalchemy import and_
 
 from StudentManagement import db
-from models import User, Teacher, Subject, Grade, Semester
+from StudentManagement.models import Student_Schoolclass, SchoolClass
+from models import User, Teacher, Subject, Grade, Semester, Student
 
 
 # Hàm mã hóa mật khẩu và lưu vào cơ sở dữ liệu
@@ -116,3 +118,66 @@ def add_semester(name, start_day, end_day):
     db.session.commit()
     return "Semester added successfully"
 
+
+# Code tạo sẵn cơ sở dữ liệu
+def add_student_db(first_name, last_name, birth_day, gender, phone, email, address, grade_id, image_link):
+    existing_student = db.session.query(Student).filter(
+        and_(
+            Student.first_name == first_name,
+            Student.last_name == last_name,
+            Student.birth_day == birth_day
+        )
+    ).first()
+    if existing_student:
+        return
+    else:
+        new_student = Student(
+            first_name=first_name,
+            last_name=last_name,
+            birth_day=birth_day,
+            gender=gender,
+            phone=phone,
+            email=email,
+            address=address,
+            grade_id=grade_id,
+            image_link=image_link
+        )
+        db.session.add(new_student)
+        db.session.commit()
+
+
+def class_db(name,grade_id,semester_id,teacher_id):
+    existing_class = db.session.query(SchoolClass).filter(
+        and_(
+            SchoolClass.name == name,
+            SchoolClass.grade_id == grade_id,
+            SchoolClass.semester_id == semester_id
+        )
+    ).first()
+    if existing_class:
+        return
+    new_class = SchoolClass(
+        name=name,
+        grade_id=grade_id,
+        semester_id=semester_id,
+        homeroom_teacher_id=teacher_id
+    )
+    db.session.add(new_class)
+    db.session.commit()
+
+
+def student_class_db(stu_id, class_id):
+    existing = db.session.query(Student_Schoolclass).filter(
+        and_(
+            Student_Schoolclass.student_id == stu_id,
+            Student_Schoolclass.class_id == class_id
+        )
+    ).first()
+    if existing:
+        return
+    new = Student_Schoolclass(
+        student_id=stu_id,
+        class_id=class_id
+    )
+    db.session.add(new)
+    db.session.commit()

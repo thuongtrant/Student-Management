@@ -41,9 +41,11 @@
                 <div class="form-group">
                     <label for="grade">Đăng kí vào khối</label>
                     <select class="form-control" name="grade" id="grade" required>
-                        <option value="10">10</option>
-                        <option value="11">11</option>
-                        <option value="12">12</option>
+                    {% for grade in grades %}
+                    <option value="{{ grade.id }}">
+                        Khối {{ grade.name }}
+                    </option>
+                    {% endfor %}
                     </select>
                 </div>
             </div>

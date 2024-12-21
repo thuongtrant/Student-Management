@@ -42,7 +42,7 @@ class Student(BaseModel):
     __tablename__ = 'student'
     __table_args__ = {'extend_existing': True}
     address = Column(String(255), nullable=True)
-    grade = Column(Integer, nullable=False)
+    grade_id = Column(Integer, nullable=False)
 
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
@@ -54,8 +54,6 @@ class Student_Schoolclass(db.Model):
     __table_args__ = {'extend_existing': True}
     student_id = Column(Integer, ForeignKey('student.id'), primary_key=True, nullable=False)
     class_id = Column(Integer, ForeignKey('schoolclass.id'), primary_key=True, nullable=False)
-    semester_id = Column(Integer, ForeignKey('semester.id'), primary_key=True, nullable=False)
-    homeroom_teacher_id = Column(Integer, ForeignKey('teacher.id'), nullable=False)
     description = Column(String(255), nullable=True)
 
 
@@ -150,11 +148,13 @@ class Subject(db.Model):
 class SchoolClass(db.Model):
     __tablename__ = 'schoolclass'
     __table_args__ = {'extend_existing': True}
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False, unique=True)
-    student_count = db.Column(db.Integer, nullable=False)
-    description = db.Column(db.String(255))
-    grade_id = db.Column(db.Integer, ForeignKey('grade.id'), nullable=False)
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(Integer, nullable=False)
+    student_count = Column(Integer, nullable=False)
+    description = Column(String(255))
+    grade_id = Column(Integer, ForeignKey('grade.id'), nullable=False)
+    semester_id = Column(Integer, ForeignKey('semester.id'), primary_key=True, nullable=False)
+    homeroom_teacher_id = Column(Integer, ForeignKey('teacher.id'), nullable=False)
 
     def __repr__(self):
         return f'<SchoolClass {self.name}>'
@@ -165,18 +165,29 @@ class Rule(db.Model):
     __tablename__ = 'rule'
     __table_args__ = {'extend_existing': True}
     id = Column(Integer, primary_key=True, autoincrement=True)
-    so_tuoi_toi_thieu = Column(Integer, nullable=False, default=6)
+    so_tuoi_toi_thieu = Column(Integer, nullable=False, default=15)
     so_tuoi_toi_da = Column(Integer, nullable=False, default=18)
-    si_so_toi_da = Column(Integer, nullable=False, default=30)
+    si_so_toi_thieu = Column(Integer, nullable= False, default=30)
+    si_so_toi_da = Column(Integer, nullable=False, default=50)
 
     def __repr__(self):
-        return f'<Rule (Min Age: {self.so_tuoi_toi_thieu}, Max Age: {self.so_tuoi_toi_da}, Max Class Size: {self.si_so_toi_da})>'
+        return f'<Rule (Min Age: {self.so_tuoi_toi_thieu}, Max Age: {self.so_tuoi_toi_da}, Min Class Size: {self.si_so_toi_thieu}, Max Class Size: {self.si_so_toi_da})>'
 
 
 if __name__ == '__main__':
     with app.app_context():
         pass
         db.create_all()
+
+        # new_rule = Rule(
+        #     so_tuoi_toi_thieu=15,
+        #     si_so_toi_thieu=30,
+        #     so_tuoi_toi_da=18,
+        #     si_so_toi_da=50
+        # )
+        # db.session.add(new_rule)
+        # db.session.commit()
+
         # User.__table__.create(db.engine)
 
         # Rule.__table__.create(db.engine)

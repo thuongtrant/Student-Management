@@ -1,21 +1,19 @@
 from datetime import datetime
 from math import ceil
-
 import bcrypt
 from flask import jsonify
 from flask import render_template, request, redirect, url_for, flash
 from flask_login import login_user, logout_user, login_required, LoginManager, current_user
 from password_strength import PasswordPolicy
 from sqlalchemy import and_
-
 from StudentManagement import app, db
 from dao import load_students
-from models import Student, Rule
-from models import User, UserRole
+from models import Student, Rule, User, UserRole, Grade
 from send_email import send_mail
 from utils import (check_login, get_all_subjects, get_subject_by_id, add_subject, update_subject,
-                   delete_subject
-, get_all_classes, get_all_teachers, add_class, get_class_by_id, update_class_by_id, delete_class_by_id)
+                   delete_subject, get_teacher_with_subject, get_available_teachers, get_teacher_nonehr
+, get_all_classes, get_all_teachers, add_class, get_class_by_id, update_class_by_id, delete_class_by_id,
+                   add_classes_auto)
 
 # Khởi tạo LoginManager
 login_manager = LoginManager()
@@ -176,7 +174,7 @@ def add_student():
                 email = request.form.get('email')
                 address = request.form.get('address')
                 file = request.files['photo']
-                grade = request.form.get('grade')
+                grade_id = request.form.get('grade')
                 new_student = Student(
                     first_name=first_name,
                     last_name=last_name,
@@ -186,7 +184,7 @@ def add_student():
                     email=email,
                     address=address,
                     image_link=file.filename,
-                    grade=grade
+                    grade_id=grade_id
                 )
                 db.session.add(new_student)
                 db.session.commit()
@@ -291,10 +289,16 @@ def delete_student():
 
 
 # Phân lớp tự động
-@app.route('/automatic_class_management')
+@app.route('/automatic_class_management', methods=['GET','POST'])
 @login_required
 def automatic_class_management():
-    return render_template("automatic_class_management.html")
+    if request.method == 'POST':
+        grade_id = int(request.form.get('class_grade_auto'))
+        add_classes_auto(grade_id)
+    grades = db.session.query(Grade).all()
+    classes = get_all_classes()
+    teachers = get_teacher_nonehr()
+    return render_template("class_management.html", classes=classes, teachers=teachers, grades=grades)
 
 
 # Định nghĩa yêu cầu mật khẩu
@@ -361,14 +365,15 @@ def manage_subjects():
         subject_name = request.form.get('subject_name')
         subject_code = request.form.get('subject_code')
         description = request.form.get('description')
-        teacher_id = request.form.get('teacher_id')
+        teacher_ids = request.form.getlist('teacher_ids[]')
+        teacher_ids = [int(id) for id in teacher_ids if id]
 
         # Thêm môn học
-        if add_subject(subject_name, subject_code, description, teacher_id):
+        if add_subject(subject_name, subject_code, description, teacher_ids):
             return redirect(url_for('manage_subjects'))
 
     subjects = get_all_subjects()
-    teachers = get_all_teachers()
+    teachers = get_available_teachers()
     return render_template('subject_management.html', subjects=subjects, teachers=teachers)
 
 
@@ -380,8 +385,10 @@ def edit_subject(subject_id):
         return redirect(url_for('manage_subjects'))
 
     # Lấy danh sách giáo viên
-    available_teachers = get_all_teachers()
-    return render_template('edit_subject.html', subject=subject, teachers=available_teachers)
+    teachers_available = get_all_teachers()
+    teacher_with_subject = get_teacher_with_subject(subject_id)
+    return render_template('edit_subject.html', subject=subject, teachers=teachers_available,
+                           teacher_with_subject=teacher_with_subject)
 
 
 @app.route('/update_subject/<int:subject_id>', methods=['POST'])
@@ -390,11 +397,15 @@ def update_subject_route(subject_id):
     subject_name = request.form.get('subject_name')
     subject_code = request.form.get('subject_code')
     description = request.form.get('description')
-    teacher_id = request.form.get('teacher_id')
+    teacher_ids = request.form.getlist('teacher_ids[]')
+    teacher_ids = [int(id) for id in teacher_ids if id]
 
     # Cập nhật môn học
-    if update_subject(subject_id, subject_name, subject_code, description, teacher_id):
+    if update_subject(subject_id, subject_name, subject_code, description, teacher_ids):
         return redirect(url_for('manage_subjects'))
+    else:
+        flash('Cập nhật môn học thất bại!', 'danger')
+        return redirect(url_for('edit_subject', subject_id=subject_id))
 
 
 @app.route('/api/delete-subject/<int:subject_id>', methods=['DELETE'])
@@ -412,22 +423,21 @@ def class_management():
     if request.method == 'POST':
         # Lấy dữ liệu từ form
         class_name = request.form.get('class_name')
-        class_code = request.form.get('class_code')
         grade = request.form.get('class_grade')
         student_count = int(request.form.get('student_count'))
         description = request.form.get('description')
         teacher_id = request.form.get('teacher_id')
 
-        success, message = add_class(class_name, class_code, grade, student_count, description, teacher_id)
+        success, message = add_class(class_name, grade, student_count, description, teacher_id)
         if not success:
             flash(message, 'danger')
         else:
             flash(message, 'success')
         return redirect(url_for('class_management'))
-
+    grades = db.session.query(Grade).all()
     classes = get_all_classes()
-    teachers = get_all_teachers()
-    return render_template('class_management.html', classes=classes, teachers=teachers)
+    teachers = get_teacher_nonehr()
+    return render_template('class_management.html', classes=classes, teachers=teachers, grades=grades)
 
 
 # Lấy dữ liệu để hiện thị trong trang sửa lớp học
