@@ -1,0 +1,134 @@
+{% extends "layout/base.html" %}
+
+{% block title %} ClassUpdate - Student Management {% endblock %}
+
+{% block content %}
+<br>
+<form method="POST" action="{{ url_for('class_update', class_id=cls.id) }}"
+      enctype="multipart/form-data" style="display:flex; justify-content: space-between;">
+    <div style="width:45%;">
+        <div style="overflow-x: auto;">
+            <h3 class="text-center">Danh sách học sinh lớp {{ grade }}/{{ cls.name }}</h3>
+            <table class="table table-striped table-secondary table-hover"
+                   style="width: 100%; table-layout: fixed;">
+                <thead style="--bs-table-bg:#32383e;color:white;">
+                <tr>
+                    <th style="width:20%; text-align:center;">Số thứ tự</th>
+                    <th style="text-align:center;width:30%;">Họ và tên đệm</th>
+                    <th>Tên</th>
+                    <th style="width:10%; text-align:center;"></th>
+                </tr>
+                </thead>
+            </table>
+            <div style="overflow-y: auto; height: 400px;">
+                <table class="table table-striped table-secondary table-hover table-bordered"
+                       style="width: 100%; table-layout: fixed;">
+                    <tbody>
+                    {% for s in students %}
+                    <tr>
+                        <td style="text-align:center;">{{ loop.index }}</td>
+                        <td>{{ s.last_name }}</td>
+                        <td>{{ s.first_name }}</td>
+                        <td style="text-align:center;">
+                            <a style="color:white;background:#8a212b;" class="btn background-btn border_btn"
+                               href="{{ url_for('delete_student', student_id=s.id) }}">Xóa</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <br>
+            <div style="overflow-x: auto;">
+                <h3 class="text-center">Danh sách học sinh chưa có lớp khối {{ grade }}</h3>
+                <table class="table table-striped table-secondary table-hover"
+                       style="width: 100%; table-layout: fixed;">
+                    <thead style="--bs-table-bg:#32383e;color:white;">
+                    <tr>
+                        <th style="width:20%; text-align:center;">Số thứ tự</th>
+                        <th style="text-align:center;width:30%;">Họ và tên đệm</th>
+                        <th>Tên</th>
+                        <th style="width:10%; text-align:center;"></th>
+                    </tr>
+                    </thead>
+                </table>
+                <div style="overflow-y: auto; height: 400px;">
+                    <table class="table table-striped table-secondary table-hover table-bordered"
+                           style="width: 100%; table-layout: fixed;">
+                        <tbody>
+                        {% for s in students_nullclass %}
+                        <tr>
+                            <td style="text-align:center;">{{ loop.index }}</td>
+                            <td>{{ s.last_name }}</td>
+                            <td>{{ s.first_name }}</td>
+                            <td style="text-align:center;">
+                                <a style="color:white;background:#218a52;" class="btn background-btn border_btn"
+                                   href="{{ url_for('delete_student', student_id=s.id) }}">Thêm</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+
+        </div>
+    </div>
+    <div style="width:48%; overflow-x: auto;">
+        <h3 class="text-center">Danh sách giáo viên lớp {{ grade }}/{{ cls.name }}</h3>
+        <table class="table table-striped table-secondary table-hover table-bordered"
+               style="width: 100%; table-layout: fixed;">
+            <thead style="--bs-table-bg:#32383e;color:white;border-color:black;">
+            <tr>
+                <th style="width:15%; text-align:center;">Số thứ tự</th>
+                <th style="text-align:center;">Môn học</th>
+                <th style="text-align:center;">Giáo viên</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for s in subjects %}
+            <tr>
+                <td style="text-align:center;">{{ loop.index }}</td>
+                <td>{{ s.name }}</td>
+                <td>
+                    <div class="form-group">
+                        <select class="form-control" id="teacher_id_{{ s.id }}" name="teacher_id_{{ s.id }}">
+                                      <option value="">Chọn giáo viên</option>
+                                    {% for teacher, user in teachers %}
+                                        {% if teacher.subject_id == s.id %}
+                                            <!-- Disable giáo viên chủ nhiệm -->
+                                            <option value="{{ teacher.id }}" {% if teacher.id == teacher_map[s.id] %}selected{% endif %}
+                                            {% if teacher.id == homeroom_teacher_id %}disabled{% endif %}>
+                                                {{ user.last_name }} {{ user.first_name }}
+                                            </option>
+                                        {% endif %}
+                                    {% endfor %}
+                        </select>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        <button style="color:white;" type="submit"
+                class="btn background-btn border_btn">Lưu thay
+            đổi
+        </button>
+    </div>
+</form>
+<!-- JavaScript -->
+<script>
+    function checkHomeroomTeacherChange(homeroom_teacher_id, subject_id) {
+        var selected_teacher_id = document.getElementById("teacher_id_" + subject_id).value;
+        if (selected_teacher_id == homeroom_teacher_id) {
+            return confirm("Giáo viên được chọn là giáo viên chủ nhiệm. Bạn có chắc chắn muốn chọn giáo viên này?");
+        }
+        return true;
+    }
+
+    function confirmTeacherChange() {
+        return confirm("Bạn có chắc chắn muốn lưu thay đổi giáo viên cho lớp này?");
+    }
+</script>
+{% endblock %}

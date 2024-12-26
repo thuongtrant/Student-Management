@@ -1,0 +1,30 @@
+{% extends "layout/base.html" %}
+
+{% block title %} DeleteClass - Student Management {% endblock %}
+
+{% block content %}
+<div style="margin:5% auto;" class="col-md-5">
+    <div class="box box-danger">
+        <div class="box-body">
+            <form action="{{ url_for('delete_class', class_id=cls.id) }}" method="POST">
+                <label><b>Bạn có chắc chắn muốn xóa lớp {{ grade }}/{{ cls.name }} cùng các thông tin liên quan ra
+                    khỏi hệ thống không?</b></label>
+                <p></p>
+                <label><b>Nhập mật khẩu tài khoản để tiếp tục:</b></label>
+                <p></p>
+                <div class="form-group">
+                    <div class="form-line">
+                        <input class="form-control" placeholder="Nhập mật khẩu"
+                               type="password" name="password_check" id="password_check" required>
+                    </div>
+                </div>
+                <br>
+                <button style="background:#32383e;border:none;" type="submit" class="btn btn-primary">Xác nhận
+                </button>
+                <a style="color:white;" class="btn background-btn border_btn"
+                   href="{{ url_for('class_management') }}">Trang quản lý lớp</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

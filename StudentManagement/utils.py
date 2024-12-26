@@ -2,11 +2,12 @@ from datetime import datetime
 
 import bcrypt
 from flask import flash
-from sqlalchemy import and_, or_
+from sqlalchemy import and_, func
 from sqlalchemy.exc import SQLAlchemyError
 
 from StudentManagement import db
-from models import User, Subject, Teacher, SchoolClass, Rule, Semester, Grade, Student, Student_Schoolclass
+from models import User, Subject, Teacher, SchoolClass, Rule, Semester, Grade, Student, Student_Schoolclass, \
+    Teacher_Schoolclass
 
 
 def check_login(username, password):
@@ -19,17 +20,51 @@ def check_login(username, password):
     return None
 
 
+# Trả về danh sách học sinh kèm lớp
+def load_students(kw=None, page=1):
+    query = (
+        Student.query
+        .join(Student_Schoolclass, Student.id == Student_Schoolclass.student_id)
+        .join(SchoolClass, SchoolClass.id == Student_Schoolclass.class_id)
+        .join(Grade, Grade.id == SchoolClass.grade_id)
+        .filter(SchoolClass.semester_id == get_present_semester().id)
+    )
+
+    # Lọc theo từ khóa nếu có
+    if kw:
+        query = query.filter(
+            func.concat(Student.last_name, " ", Student.first_name).contains(kw)
+        )
+
+    # Sắp xếp theo tên học sinh
+    query = query.order_by(Student.first_name)
+
+    # Phân trang
+    page_size = 10
+    start = (page - 1) * page_size
+    query = query.slice(start, start + page_size)
+
+    # Lấy danh sách học sinh, lớp và khối
+    return query.with_entities(
+        Student.id,
+        Student.first_name,
+        Student.last_name,
+        SchoolClass.name.label('class_name'),  # Tên lớp
+        Grade.name.label('grade_name')  # Tên khối
+    ).all()
+
+
 def get_user_by_id(user_id):
     return User.query.get(user_id)
-
-
-def get_subject_by_id(subject_id):
-    return Subject.query.get(subject_id)
 
 
 # Lấy môn học theo ID
 def get_subject_by_id(subject_id):
     return Subject.query.get(subject_id)
+
+
+def get_all_subjects_only():
+    return db.session.query(Subject).all()
 
 
 def get_all_subjects():
@@ -155,40 +190,31 @@ def get_all_teachers():
         .all()
 
 
-# Hàm lấy danh sách tất cả lớp học
-def get_all_classes():
+# Lay danh sach hoc sinh ma giao vien chu nhiem
+def get_students_by_teacherid(teacher_id):
+    return db.session.query(Student) \
+        .join(Student_Schoolclass, Student_Schoolclass.student_id == Student.id) \
+        .join(SchoolClass, Student_Schoolclass.class_id == SchoolClass.id) \
+        .filter(teacher_id == SchoolClass.homeroom_teacher_id, SchoolClass.semester_id == get_present_semester().id) \
+        .order_by(Student.first_name).all()
+
+
+# Hàm lấy danh sách tất cả lớp học trong học kì
+def get_all_classes_this_semester():
     return db.session.query(SchoolClass, Grade, Teacher, User) \
         .join(Grade, SchoolClass.grade_id == Grade.id) \
         .join(Teacher, SchoolClass.homeroom_teacher_id == Teacher.id) \
         .join(User, Teacher.user_id == User.id) \
+        .filter(SchoolClass.semester_id == get_present_semester().id) \
         .all()
 
 
-# Hàm thêm lớp học mới
-def add_class(class_name, class_code, grade, student_count, description, teacher_id):
-    try:
-        quy_dinh = Rule.query.first()
-        if student_count > quy_dinh.si_so_toi_da:
-            return False, f'Sĩ số lớp không được vượt quá {quy_dinh.si_so_toi_da}'
-
-        # Kiểm tra giáo viên có đang chủ nhiệm lớp khác không
-        teacher = Teacher.query.filter_by(id=teacher_id).first()
-        if teacher and teacher.class_id:
-            return False, 'Giáo viên này đã chủ nhiệm một lớp khác!'
-
-        new_class = SchoolClass(name=class_name, code=class_code, grade=grade,
-                                student_count=student_count, description=description,
-                                teacher_id=teacher_id)
-        db.session.add(new_class)
-        # Cập nhật thông tin giáo viên chủ nhiệm
-        if teacher:
-            teacher.class_id = new_class.id
-            db.session.add(teacher)
-        db.session.commit()
-        return True, 'Lớp học đã được thêm thành công!'
-    except Exception as e:
-        db.session.rollback()
-        return False, f'Có lỗi xảy ra: {str(e)}'
+# Lấy danh sách học sinh theo lớp
+def get_student_by_classid(class_id):
+    return db.session.query(Student) \
+        .outerjoin(Student_Schoolclass, Student_Schoolclass.student_id == Student.id) \
+        .filter(Student_Schoolclass.class_id == class_id) \
+        .order_by(Student.first_name).all()
 
 
 # Hàm lấy thông tin lớp học theo ID
@@ -251,71 +277,26 @@ def delete_class_by_id(class_id):
         return False, f'Có lỗi xảy ra khi xóa lớp học: {str(e)}'
 
 
-# # Lấy danh sách học sinh theo khối
-# def get_student_in_grade(grade_id):
-#     return db.session.query(Student).filter(grade_id=grade_id).all()
-#
-# # Lấy danh sách lớp theo học kì
-# def get_classes_in_semester(semester_id):
-#     return db.session.query(SchoolClass).filter(semester_id=semester_id).all()
-#
-# # Lấy danh sách học sinh của khối chưa được phân lớp
-# def get_student_in_grade_nullclass(grade_id):
-#     current_date = datetime.now()
-#     semester = db.session.query(Semester).filter(
-#         and_(
-#             Semester.start_day < current_date,
-#             Semester.end_day > current_date
-#         )
-#     ).first()
-#     return db.session.query(Student) \
-#         .outerjoin(Student_Schoolclass, Student.id == Student_Schoolclass.student_id) \
-#         .outerjoin(SchoolClass, Student_Schoolclass.class_id == SchoolClass.id) \
-#         .outerjoin(Semester, SchoolClass.semester_id == Semester.id) \
-#         .filter((Semester.id == None) | (Semester.id != semester)) \
-#         .all()
-#
-# # Lấy danh sách lớp chưa full
-# def get_classes_not_full(grade_id):
-#     current_date = datetime.now()
-#     semester = db.session.query(Semester).filter(
-#         and_(
-#             Semester.start_day <= current_date,
-#             Semester.end_day >= current_date
-#         )
-#     ).first()
-#     return db.session.query(SchoolClass).filter(
-#         and_(
-#             SchoolClass.grade_id == grade_id,
-#             SchoolClass.semester_id == semester.id,
-#             SchoolClass.student_count < db.session.query(Rule).first().si_so_toi_da  # So sánh sĩ số hiện tại
-#         )
-#     ).all()
-#
-# # Lấy danh sách giáo viên chưa chủ nhiệm lớp nào
-# def get_teacher_nonehr():
-#
-#
-#     return db.session.query(Teacher, User) \
-#         .outerjoin(User, Teacher.user_id == User.id) \
-#         .outerjoin(SchoolClass, SchoolClass.homeroom_teacher_id == Teacher.id) \
-#         .filter(SchoolClass.homeroom_teacher_id == None) \
-#         .all()
-#
-
 # Lấy danh sách giáo viên chưa chủ nhiệm lớp nào trong kì
 def get_teacher_nonehr():
-    present_semester = get_present_semester()
-    return db.session.query(Teacher, User) \
-        .outerjoin(User, Teacher.user_id == User.id) \
-        .outerjoin(SchoolClass, SchoolClass.homeroom_teacher_id == Teacher.id) \
-        .filter(
-        and_(
-            SchoolClass.homeroom_teacher_id == None,
-            #SchoolClass.semester_id == present_semester.id
-        )
-    ) \
-        .all()
+    present_semester = get_present_semester()  # Lấy học kỳ hiện tại
+
+    # Lấy tất cả giáo viên
+    teachers = db.session.query(Teacher, User).join(User, Teacher.user_id == User.id).all()
+
+    # Lấy danh sách giáo viên đã làm chủ nhiệm trong học kỳ hiện tại
+    teachers_assigned_to_class = db.session.query(Teacher, User) \
+        .join(SchoolClass, SchoolClass.homeroom_teacher_id == Teacher.id) \
+        .join(User, Teacher.user_id == User.id) \
+        .filter(SchoolClass.semester_id == present_semester.id).all()
+
+    # Lọc danh sách giáo viên chưa làm chủ nhiệm (tất cả giáo viên - giáo viên đã làm chủ nhiệm)
+    teachers_without_class = [teacher_user for teacher_user in teachers if
+                              teacher_user not in teachers_assigned_to_class]
+
+    # Trả về danh sách giáo viên chưa làm chủ nhiệm dưới dạng đối tượng Teacher và User
+    return teachers_without_class
+
 
 # Lấy học kì hiện tại
 def get_present_semester():
@@ -338,128 +319,264 @@ def get_previous_semester():
 
 # Lấy học sinh chưa được phân lớp trong kì theo khối
 def get_unassigned_students(grade_id):
-    semester = get_present_semester()
-    return (db.session.query(Student)
-            .outerjoin(Student_Schoolclass, Student.id == Student_Schoolclass.student_id)
-            .outerjoin(SchoolClass, Student_Schoolclass.class_id == SchoolClass.id)
-            .outerjoin(Grade, Grade.id == Student.grade_id)
-            .filter(
-        or_(
-            Student_Schoolclass.class_id == None,
-            SchoolClass.semester_id != semester.id
-        )
-    ).all())
+    semester = get_present_semester()  # Lấy học kỳ hiện tại
+
+    # Lấy tất cả học sinh của khối
+    all_students = db.session.query(Student).filter(Student.grade_id == grade_id).all()
+
+    # Lấy danh sách học sinh đã phân lớp trong học kỳ hiện tại
+    students_assigned_to_class = db.session.query(Student) \
+        .join(Student_Schoolclass, Student.id == Student_Schoolclass.student_id) \
+        .join(SchoolClass, Student_Schoolclass.class_id == SchoolClass.id) \
+        .filter(SchoolClass.semester_id == semester.id, Student.grade_id == grade_id).all()
+
+    # Lọc danh sách học sinh chưa phân lớp (tất cả học sinh - học sinh đã phân lớp)
+    unassigned_students = [student for student in all_students if student not in students_assigned_to_class]
+
+    # Trả về danh sách học sinh chưa phân lớp
+    return unassigned_students
 
 
-# Lấy danh sách lớp chưa full trong kì
-def get_classes_not_full(grade_id):
-    semester = get_present_semester()
-    return db.session.query(SchoolClass).filter(
-        and_(
-            SchoolClass.grade_id == grade_id,
-            SchoolClass.semester_id == semester.id,
-            SchoolClass.student_count < db.session.query(Rule).first().si_so_toi_da  # So sánh sĩ số hiện tại
-        )
-    ).all()
-
-
-# Phân lớp từ dữ liệu lớp cũ
-def set_class_from_old(grade_id):
-    present_semester = get_present_semester()
-    if present_semester.name==2:
-        new_grade_id=grade_id
-    else:
-        new_grade_id=grade_id+1
-
-    previous_semester = get_previous_semester()
-    if not previous_semester:
-        return "Không tìm thấy học kỳ trước!"
-
-    # Lấy danh sách lớp từ học kỳ 1
-    previous_classes = db.session.query(SchoolClass).filter(
-        SchoolClass.semester_id == previous_semester.id,
-        SchoolClass.grade_id == grade_id
-    ).all()
-
-    # Tạo lại lớp nếu chưa tồn tại ở kỳ hiện tại
-    for cls in previous_classes:
-        if present_semester.name == 2:
-            new_teacher_id = cls.homeroom_teacher_id
+# Hàm thêm lớp học mới
+def create_new_class(grade_id, homeroom_teacher_id, student_count, description):
+    try:
+        quy_dinh = Rule.query.first()
+        if student_count > quy_dinh.si_so_toi_da or student_count < quy_dinh.si_so_toi_thieu:
+            flash(f'Sĩ số lớp không được vượt quá {quy_dinh.si_so_toi_da} hay nhỏ hơn {quy_dinh.si_so_toi_thieu}',
+                  'error')
         else:
-            teachers=get_teacher_nonehr()
-            if teachers:  # Kiểm tra nếu danh sách không rỗng
-                new_teacher_id = teachers[0].id
-            else:
-                # Xử lý trường hợp danh sách rỗng (ví dụ: thông báo lỗi hoặc gán giá trị mặc định)
-                new_teacher_id = None  # Hoặc giá trị mặc định khác tùy nhu cầu
-        existing_class = db.session.query(SchoolClass).filter(
-            SchoolClass.name == cls.name,
-            SchoolClass.grade_id == new_grade_id,
-            SchoolClass.semester_id == present_semester.id
-        ).first()
-        if not existing_class:
+            semester = get_present_semester()
+
+            # Lấy danh sách các lớp hiện tại trong học kỳ và kiểm tra tên lớp đã tồn tại
+            existing_classes = db.session.query(SchoolClass).filter(
+                and_(
+                    SchoolClass.grade_id == grade_id,
+                    SchoolClass.semester_id == semester.id
+                )
+            ).all()
+
+            # Lấy danh sách tên lớp hiện tại
+            existing_class_numbers = set([cls.name for cls in existing_classes])
+
+            # Tạo tên lớp mới bằng cách tìm số lớp chưa tồn tại
+            class_number = 1  # Bắt đầu từ lớp 1
+            while class_number in existing_class_numbers:
+                class_number += 1  # Tăng tên lớp lên nếu lớp này đã tồn tại
+
+            # Tạo lớp mới
             new_class = SchoolClass(
-                name=cls.name,
-                grade_id=cls.grade_id,
-                semester_id=present_semester.id,
-                homeroom_teacher_id=new_teacher_id,
-                student_count=cls.student_count
+                name=str(class_number),  # Tên lớp là số nguyên
+                grade_id=grade_id,
+                semester_id=semester.id,
+                homeroom_teacher_id=homeroom_teacher_id,
+                student_count=student_count,
+                description=description
             )
             db.session.add(new_class)
             db.session.commit()
 
+            # Thêm giáo viên chủ nhiệm vào lớp
+            new_teacher_schoolclass = Teacher_Schoolclass(
+                teacher_id=homeroom_teacher_id,
+                class_id=new_class.id,
+                semester_id=semester.id,
+                subject_id=db.session.query(Teacher).filter(Teacher.id == homeroom_teacher_id).first().subject_id
+            )
+            db.session.add(new_teacher_schoolclass)
+            db.session.commit()
+
+            flash('Lớp học đã được thêm thành công!')
+            return new_class
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Có lỗi xảy ra: {str(e)}', 'error')
+        return False
+
+
+def create_new_classes(grade_id, total_classes_needed):
+    present_semester = get_present_semester()
+    existing_classes = db.session.query(SchoolClass).filter(
+        SchoolClass.semester_id == present_semester.id,
+        SchoolClass.grade_id == grade_id
+    ).all()
+
+    # Kiểm tra số lượng học sinh chưa được phân lớp
+    unassigned_students = get_unassigned_students(grade_id)
+    rules = db.session.query(Rule).first()
+    min_students = rules.si_so_toi_thieu
+    max_students = rules.si_so_toi_da
+
+    # Tính tổng số slot trống trong các lớp hiện tại
+    total_available_slots = sum(max_students - cls.student_count for cls in existing_classes)
+
+    if len(unassigned_students) <= total_available_slots:
+        flash(f"Chỉ còn {len(unassigned_students)} học sinh chưa phân lớp. Sẽ phân bổ đều vào các lớp hiện có.", 'info')
+        return existing_classes  # Không tạo thêm lớp mới, trả về danh sách lớp hiện tại
+
+    # Tiếp tục tạo lớp nếu số slot hiện tại không đủ
+    class_numbers = set([cls.name for cls in existing_classes])  # Lấy danh sách tên lớp hiện tại
+    new_class_number = 1  # Bắt đầu từ lớp 1
+    created_classes = []
+
+    for _ in range(total_classes_needed):
+        # Kiểm tra lớp có tên đã tồn tại chưa, nếu có thì tăng tên lớp lên
+        while new_class_number in class_numbers:
+            new_class_number += 1  # Bỏ qua các lớp đã tồn tại
+
+        # Kiểm tra số lượng giáo viên chủ nhiệm còn lại
+        unassigned_teachers_count = len(get_teacher_nonehr())
+        if total_classes_needed > unassigned_teachers_count:
+            flash(f"Không đủ giáo viên chủ nhiệm để tạo {total_classes_needed} lớp!", 'error')
+            return existing_classes  # Không tạo thêm lớp nếu thiếu giáo viên
+
+        # Lấy giáo viên chủ nhiệm từ danh sách (trích xuất Teacher từ tuple)
+        teacher_user = get_teacher_nonehr().pop(0)  # Trả về (Teacher, User)
+        homeroom_teacher = teacher_user[0]  # Teacher là phần tử đầu tiên của tuple
+
+        # Tạo lớp mới
+        new_class = SchoolClass(
+            name=new_class_number,
+            grade_id=grade_id,
+            semester_id=present_semester.id,
+            homeroom_teacher_id=homeroom_teacher.id,
+            student_count=0
+        )
+        db.session.add(new_class)
+        created_classes.append(new_class)
+        class_numbers.add(new_class_number)  # Thêm tên lớp vào danh sách đã có
+        new_class_number += 1  # Tăng tên lớp cho lần sau
+        db.session.commit()
+
+        # Thêm giáo viên chủ nhiệm vào lớp
+        new_teacher_schoolclass = Teacher_Schoolclass(
+            teacher_id=homeroom_teacher.id,
+            class_id=new_class.id,
+            semester_id=present_semester.id,
+            subject_id=db.session.query(Teacher).filter(Teacher.id == homeroom_teacher.id).first().subject_id
+        )
+        db.session.add(new_teacher_schoolclass)
+        db.session.commit()
+
+    db.session.commit()  # Lưu các lớp mới vào cơ sở dữ liệu
+    return existing_classes + created_classes  # Trả về danh sách lớp cũ + lớp mới
+
+
+def assign_students_to_class(class_id, student_ids):
+    try:
+        # Tìm lớp học
+        school_class = db.session.query(SchoolClass).filter(SchoolClass.id == class_id).first()
+        if not school_class:
+            return False
+
+        # Kiểm tra sĩ số lớp trước khi gán
+        quy_dinh = Rule.query.first()
+        if school_class.student_count + len(student_ids) > quy_dinh.si_so_toi_da:
+            return False
+
+        # Gán học sinh vào lớp
+        for student_id in student_ids:
+            new_assignment = Student_Schoolclass(student_id=student_id, class_id=class_id)
+            db.session.add(new_assignment)
+            school_class.student_count += 1
+            db.session.commit()
+
+    except Exception as e:
+        db.session.rollback()
+        flash(f"Đã xảy ra lỗi khi gán học sinh vào lớp: {str(e)}", 'error')
+        return False
+
+
+# Thêm học sinh vào các lớp đã tạo
+def add_students_to_classes(grade_id, unassigned_students, created_classes, max_students, min_students):
+    remaining_students = unassigned_students[:]
+    active_classes = created_classes[:]  # Danh sách các lớp có thể nhận thêm học sinh
+
+    print(f"Initial unassigned students: {len(remaining_students)}")
+    print(f"Initial classes: {[cls.name for cls in active_classes]}")
+
+    student_idx = 0  # Chỉ số học sinh
+    while remaining_students and active_classes:
+        # Tìm lớp hiện tại để gán học sinh
+        current_class_idx = student_idx % len(active_classes)
+        school_class = active_classes[current_class_idx]
+
+        # Kiểm tra nếu lớp đạt sĩ số tối đa
+        if school_class.student_count >= max_students:
+            print(
+                f"Class {school_class.name} reached max_students ({school_class.student_count}). Removing from active_classes.")
+            active_classes.pop(current_class_idx)  # Loại bỏ lớp khỏi danh sách
+            continue
+
+        # Gán học sinh vào lớp
+        student = remaining_students.pop(0)  # Lấy học sinh từ đầu danh sách
+        assign_students_to_class(school_class.id, [student.id])
+
+        # Ghi log thông tin gán học sinh
+        print(
+            f"Assigned student {student.id} to class {school_class.name}. Current count: {school_class.student_count}")
+
+        # Chuyển sang học sinh tiếp theo
+        student_idx += 1
+
+    # Ghi log sau khi vòng lặp kết thúc
+    print(f"Remaining students after loop: {len(remaining_students)}")
+    print(f"Classes status after loop:")
+    for cls in created_classes:
+        print(f"  - Class {cls.name}: {cls.student_count} students")
+
+    # Nếu vẫn còn học sinh chưa được phân lớp
+    if remaining_students:
+        print(f"Warning: {len(remaining_students)} students remain unassigned.")
+
+
+# Tạo lớp và phân học sinh cho khối 10 học kỳ 1
+def set_class_from_new(grade_id):
+    unassigned_students = get_unassigned_students(grade_id)
+    rules = db.session.query(Rule).first()
+    min_students = rules.si_so_toi_thieu
+    max_students = rules.si_so_toi_da
+
+    # Tính số lớp cần tạo
+    unassigned_students_count = len(unassigned_students)
+    total_classes_needed = unassigned_students_count // min_students  # Số lớp cần thiết theo min_students
+
+    # Sắp xếp danh sách học sinh
+    unassigned_students = sorted(unassigned_students, key=lambda x: x.first_name)
+
+    # Tạo các lớp mới
+    created_classes = create_new_classes(grade_id, total_classes_needed)
+
+    # Phân học sinh vào các lớp đã tạo
+    add_students_to_classes(grade_id, unassigned_students, created_classes, max_students, min_students)
+
+
+# Tạo lớp mới và phân toàn bộ học sinh
+def add_classes_auto(grade_id):
+    present_semester = get_present_semester()
+    grade = db.session.query(Grade).filter(Grade.id == grade_id).first()
+
     # Lấy danh sách học sinh chưa được phân lớp
     unassigned_students = get_unassigned_students(grade_id)
 
-    for student in unassigned_students:
-        # Kiểm tra lịch sử lớp cũ
-        previous_class = db.session.query(Student_Schoolclass).join(
-            SchoolClass, SchoolClass.id == Student_Schoolclass.class_id
-        ).filter(
-            Student_Schoolclass.student_id == student.id,
-            SchoolClass.semester_id == previous_semester.id
-        ).first()
+    if not unassigned_students:
+        flash("Tất cả học sinh đã được phân lớp!", 'success')
+        return
 
-        if previous_class:
-            # Thêm học sinh vào lớp tương ứng
-            present_class = db.session.query(SchoolClass).filter(
-                SchoolClass.name == previous_class.schoolclass.name,
-                SchoolClass.grade_id == previous_class.schoolclass.grade_id,
-                SchoolClass.semester_id == present_semester.id
-            ).first()
-        else:
-            # Thêm học sinh vào lớp chưa đủ sĩ số
-            present_class = get_classes_not_full(grade_id)[0]
-
-        # Cập nhật học sinh vào lớp
-        if present_class:
-            new_student_schoolclass = Student_Schoolclass(
-                student_id=student.id,
-                class_id=present_class.id
-            )
-            db.session.add(new_student_schoolclass)
-            db.session.commit()
-            if not present_class:
-                present_class.student_count+=1
-                db.session.commit()
-        else:
-            flash("Không còn lớp để thêm học sinh, hãy tiến hành tạo thủ công hoặc thay đổi quy định!", 'error')
-    flash("Đã thêm các lớp thành công!", 'success')
-
-
-# Phân lớp mới
-def set_new_classes(grade_id):
-    return
-
-
-# Tạo lớp tự động
-def add_classes_auto(grade_id):
-    present_semester = get_present_semester()
-    if present_semester.name == 2 or (present_semester.name == 1
-                                     and db.session.query(Grade).filter(Grade.id==grade_id).first().name != 10):
-        if get_unassigned_students(grade_id):
-            set_class_from_old(grade_id)
-        else:
-            flash("Tất cả học sinh đều đã được thêm vào lớp!", 'error')
+    # Xử lý theo logic học kỳ và khối
+    if present_semester.name == 2:
+        # Học kỳ 2: Tạo lớp mới dựa trên dữ liệu cũ
+        # set_class_from_old(grade_id)
+        return
+    elif (present_semester.name == 1 and (grade.name == 11 or grade.name == 12)):
+        # set_class_from_old(grade_id)
+        return
     else:
-        set_new_classes(grade_id)
+        # Khối 10 hoặc học sinh mới, tạo lớp hoàn toàn mới
+        set_class_from_new(grade_id)
+
+    # Nếu còn học sinh chưa được phân lớp, thêm vào các lớp chưa đầy
+    unassigned_students = get_unassigned_students(grade_id)
+    if unassigned_students:
+        flash("Có học sinh chưa được phân lớp, kiểm tra quy định hoặc tạo thêm lớp thủ công!", 'error')
+    else:
+        flash("Đã phân lớp cho tất cả học sinh", 'success')

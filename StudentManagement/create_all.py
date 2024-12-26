@@ -482,19 +482,18 @@ with app.app_context():
     add_student_db('Như', 'Nguyễn Thị', '20070125', 'Nữ', '0900000265', 'thinhunh265@example.com', '789 Đường BB', 3,
                    'user_1.jpg')
     # Lớp
-    class_db(1,1,2,1)
-    class_db(2,1,2,2)
-    class_db(1,2,2,3)
-    class_db(2,2,2,4)
+    class_db(1, 1, 2, 1, 30)
+    class_db(2, 1, 2, 2, 30)
+    class_db(1, 2, 2, 3, 23)
+    class_db(2, 2, 2, 4, 22)
     # Học sinh học lớp
-    for i in range(91,121):
-        student_class_db(i,1)
-    for i in range(121,151):
-        student_class_db(i,2)
-    for i in range(151,174):
-        student_class_db(i,3)
-    for i in range(174,196):
-        student_class_db(i,4)
-
-
-
+    for i in range(91, 121):
+        student_class_db(i, 1)
+    for i in range(121, 151):
+        student_class_db(i, 2)
+    for i in range(151, 174):
+        student_class_db(i, 3)
+    for i in range(174, 196):
+        student_class_db(i, 4)
+        for i in range(91, 121):
+            student_class_db(i, 14)

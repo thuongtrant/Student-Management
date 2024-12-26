@@ -1,19 +1,22 @@
 from datetime import datetime
 from math import ceil
+
 import bcrypt
 from flask import jsonify
 from flask import render_template, request, redirect, url_for, flash
 from flask_login import login_user, logout_user, login_required, LoginManager, current_user
 from password_strength import PasswordPolicy
 from sqlalchemy import and_
+
 from StudentManagement import app, db
-from dao import load_students
-from models import Student, Rule, User, UserRole, Grade
+from StudentManagement.utils import get_unassigned_students
+from models import Student, Rule, User, UserRole, Grade, SchoolClass, Student_Schoolclass, Teacher_Schoolclass, Teacher, \
+    Score_Board
 from send_email import send_mail
 from utils import (check_login, get_all_subjects, get_subject_by_id, add_subject, update_subject,
                    delete_subject, get_teacher_with_subject, get_available_teachers, get_teacher_nonehr
-, get_all_classes, get_all_teachers, add_class, get_class_by_id, update_class_by_id, delete_class_by_id,
-                   add_classes_auto)
+, get_all_classes_this_semester, get_all_teachers, load_students, create_new_class, get_students_by_teacherid,
+                   add_classes_auto, get_student_by_classid, get_all_subjects_only)
 
 # Khởi tạo LoginManager
 login_manager = LoginManager()
@@ -80,7 +83,9 @@ def admin_dashboard():
 @app.route('/teacher_dashboard')
 @login_required
 def teacher_dashboard():
-    return render_template('teacher_dashboard.html')
+    teacher = Teacher.query.get(current_user.id)
+    students = get_students_by_teacherid(teacher.id)
+    return render_template('teacher_dashboard.html', students=students)
 
 
 @app.route('/employee_dashboard')
@@ -133,17 +138,10 @@ def test_password():
     return redirect(url_for('change_password'))
 
 
-# Trả về trang quản lý học sinh
-@app.route('/student_management')
+# Thêm học sinh mới
+@app.route('/student_management', methods=['GET', 'POST'])
 @login_required
 def student_management():
-    return render_template('student_management.html')
-
-
-# Thêm học sinh mới
-@app.route('/add_student', methods=['GET', 'POST'])
-@login_required
-def add_student():
     if request.method == 'POST':
         first_name = request.form.get('first_name')
         last_name = request.form.get('last_name')
@@ -190,21 +188,27 @@ def add_student():
                 db.session.commit()
                 flash("Thêm thành công!", 'success')
                 send_mail(email, last_name, first_name)
-    return redirect(url_for('student_management'))
+    return render_template('student_management.html')
 
 
 # Tra cứu học sinh
 @app.route('/student_searching')
 @login_required
 def student_searching():
-    page = request.args.get('page', 1)
+    page = request.args.get('page', 1, type=int)  # Chuyển page về kiểu int
     kw = request.args.get('kw')
-    students = load_students(kw=kw, page=int(page))
-
     page_size = 10
-    total = Student.query.count()
+    students = load_students(kw=kw, page=page)
 
-    return render_template("student_searching.html", students=students, pages=ceil(total / page_size))
+    total = Student.query.count()
+    pages = ceil(total / page_size)
+
+    # Tính toán range trang hiển thị (max và min)
+    start_page = max(page - 2, 1)
+    end_page = min(page + 3, pages + 1)
+
+    return render_template("student_searching.html",
+                           students=students, pages=pages, current_page=page, start_page=start_page, end_page=end_page)
 
 
 # Xem hồ sơ cá nhân học sinh
@@ -214,27 +218,18 @@ def student_info():
     student_id = request.args.get('student_id', type=int)
     student = Student.query.get(student_id)
     formatted_date = student.birth_day.strftime("%d/%m/%Y")
-    return render_template("student_info.html", student=student, formatted_date=formatted_date)
+    return render_template("student_info.html",
+                           student=student, formatted_date=formatted_date, current_user=current_user)
 
 
 # Chỉnh sửa thông tin học sinh
-@app.route('/student_update_info')
+@app.route('/student_update', methods=['GET', 'POST'])
 @login_required
-def student_update_info():
+def student_update():
     student_id = request.args.get('student_id', type=int)
     student = Student.query.get(student_id)
     formatted_date = student.birth_day.strftime('%Y-%m-%d')
-    return render_template("student_update_info.html", student=student, formatted_date=formatted_date)
-
-
-# Cập nhật thông tin trong cơ sở dữ liệu
-@app.route('/student_update_process', methods=['GET', 'POST'])
-@login_required
-def student_update_process():
     if request.method == 'POST':
-        student_id = request.args.get('student_id', type=int)
-        student = Student.query.get(student_id)
-
         # Xử lý ngày sinh
         birth_date = request.form.get('birth_date')
         if birth_date:
@@ -259,44 +254,37 @@ def student_update_process():
         db.session.commit()
         flash("Cập nhật thành công!", 'success')
         return redirect(url_for('student_info', student_id=student_id))
-
-
-# Xác thực trước khi xóa hồ sơ học sinh
-@app.route('/delete_student_confirm')
-@login_required
-def delete_student_confirm():
-    student_id = request.args.get('student_id', type=int)
-    student = Student.query.get(student_id)
-    return render_template("delete_student.html", student=student)
+    return render_template("student_update_info.html", student=student, formatted_date=formatted_date)
 
 
 # Xóa hồ sơ học sinh
 @app.route('/delete_student', methods=['GET', 'POST'])
 @login_required
 def delete_student():
+    student_id = request.args.get('student_id', type=int)
+    student = Student.query.get(student_id)
     if request.method == 'POST':
         password_check = request.form.get('password_check')
-        student_id = request.args.get('student_id', type=int)
-        student = Student.query.get(student_id)
         if bcrypt.checkpw(password_check.encode(), current_user.password.encode()):
+            db.session.query(Student_Schoolclass).filter(Student_Schoolclass.student_id == student_id).delete()
             db.session.delete(student)
             db.session.commit()
             flash("Xóa thành công!", 'success')
+            return redirect(url_for('student_searching'))
         else:
             flash("Sai mật khẩu!", 'error')
-            return redirect(url_for('delete_student_confirm', student_id=student_id))
-    return redirect(url_for('student_searching'))
+    return render_template("delete_student.html", student=student)
 
 
 # Phân lớp tự động
-@app.route('/automatic_class_management', methods=['GET','POST'])
+@app.route('/automatic_class_management', methods=['GET', 'POST'])
 @login_required
 def automatic_class_management():
     if request.method == 'POST':
         grade_id = int(request.form.get('class_grade_auto'))
         add_classes_auto(grade_id)
     grades = db.session.query(Grade).all()
-    classes = get_all_classes()
+    classes = get_all_classes_this_semester()
     teachers = get_teacher_nonehr()
     return render_template("class_management.html", classes=classes, teachers=teachers, grades=grades)
 
@@ -422,63 +410,131 @@ def delete_subject_route(subject_id):
 def class_management():
     if request.method == 'POST':
         # Lấy dữ liệu từ form
-        class_name = request.form.get('class_name')
         grade = request.form.get('class_grade')
         student_count = int(request.form.get('student_count'))
         description = request.form.get('description')
         teacher_id = request.form.get('teacher_id')
 
-        success, message = add_class(class_name, grade, student_count, description, teacher_id)
-        if not success:
-            flash(message, 'danger')
-        else:
-            flash(message, 'success')
+        create_new_class(grade, teacher_id, student_count, description)
         return redirect(url_for('class_management'))
     grades = db.session.query(Grade).all()
-    classes = get_all_classes()
+    classes = get_all_classes_this_semester()
     teachers = get_teacher_nonehr()
     return render_template('class_management.html', classes=classes, teachers=teachers, grades=grades)
 
 
-# Lấy dữ liệu để hiện thị trong trang sửa lớp học
-@app.route('/edit_class/<int:class_id>', methods=['GET'])
-def edit_class(class_id):
-    classById = get_class_by_id(class_id)
-    if not classById:
-        flash('Lớp học không tồn tại!', 'danger')
-        return redirect(url_for('class_management'))
-    available_teachers = get_all_teachers()
-
-    return render_template('edit_class.html', classById=classById, teachers=available_teachers)
-
-
 # Tiến hành sửa lớp học
-@app.route('/update_class/<int:class_id>', methods=['POST'])
-def update_class(class_id):
-    class_name = request.form.get('class_name')
-    class_code = request.form.get('class_code')
-    grade = request.form.get('class_grade')
-    student_count = int(request.form.get('student_count'))
-    description = request.form.get('description')
-    teacher_id = request.form.get('teacher_id')
+@app.route('/class_update', methods=['GET', 'POST'])
+@login_required
+def class_update():
+    class_id = request.args.get('class_id', type=int)
+    cls = db.session.query(SchoolClass).filter(SchoolClass.id == class_id).first()
+    students = get_student_by_classid(class_id)
+    grade = db.session.query(Grade).filter(cls.grade_id == Grade.id).first()
+    subjects = get_all_subjects_only()
+    teachers = get_all_teachers()
+    students_nullclass = get_unassigned_students(grade.id)
 
-    success, message = update_class_by_id(class_id, class_name, class_code, grade, student_count, description,
-                                          teacher_id)
-    if not success:
-        flash(message, 'danger')
-    else:
-        flash(message, 'success')
+    homeroom_teacher_id = cls.homeroom_teacher_id
+    teacher_assignments = db.session.query(Teacher_Schoolclass).filter(Teacher_Schoolclass.class_id == class_id).all()
+    teacher_map = {assignment.subject_id: assignment.teacher_id for assignment in teacher_assignments}
 
-    return redirect(url_for('class_management'))
+    if request.method == 'POST':
+        for s in subjects:
+            selected_teacher_id = request.form.get(f'teacher_id_{s.id}')
+            if selected_teacher_id:
+                selected_teacher_id = int(selected_teacher_id)
+
+                # Kiểm tra xem giáo viên được chọn có phải là giáo viên chủ nhiệm
+                if selected_teacher_id == homeroom_teacher_id:
+                    flash(f"Giáo viên được chọn cho môn {s.name} là giáo viên chủ nhiệm. Vui lòng xác nhận.", "warning")
+                    return render_template(
+                        'class_update.html',
+                        cls=cls,
+                        students=students,
+                        grade=grade.name,
+                        subjects=subjects,
+                        teachers=teachers,
+                        students_nullclass=students_nullclass,
+                        teacher_map=teacher_map,
+                        confirm_teacher_change=True,
+                        subject_name=s.name,
+                        teacher_id=selected_teacher_id,
+                        subject_id=s.id
+                    )
+
+                # Cập nhật hoặc tạo mới phân công giáo viên cho môn học
+                existing_assignment = db.session.query(Teacher_Schoolclass).filter(
+                    Teacher_Schoolclass.class_id == class_id,
+                    Teacher_Schoolclass.subject_id == s.id
+                ).first()
+
+                if existing_assignment:
+                    existing_assignment.teacher_id = selected_teacher_id
+                else:
+                    new_assignment = Teacher_Schoolclass(
+                        teacher_id=selected_teacher_id,
+                        class_id=class_id,
+                        semester_id=cls.semester_id,
+                        subject_id=s.id
+                    )
+                    db.session.add(new_assignment)
+                    existing_assignment = new_assignment  # Cập nhật lại `existing_assignment` với assignment mới
+
+                # Thêm bảng điểm cho học sinh nếu chưa có
+                for student in students:
+                    existing_score_board = db.session.query(Score_Board).filter(
+                        Score_Board.student_id == student.id,
+                        Score_Board.teacher_schoolclass_id == existing_assignment.id
+                    ).first()
+
+                    if not existing_score_board:
+                        new_score_board = Score_Board(
+                            student_id=student.id,
+                            teacher_schoolclass_id=existing_assignment.id
+                        )
+                        db.session.add(new_score_board)
+
+        # Commit các thay đổi vào cơ sở dữ liệu
+        db.session.commit()
+        flash("Thông tin giáo viên và bảng điểm đã được cập nhật thành công.", "success")
+        return redirect(url_for('class_update', class_id=class_id))
+
+    # Render lại trang
+    return render_template(
+        'class_update.html',
+        cls=cls,
+        students=students,
+        grade=grade.name,
+        subjects=subjects,
+        teachers=teachers,
+        students_nullclass=students_nullclass,
+        teacher_map=teacher_map,
+        confirm_teacher_change=False
+    )
 
 
-@app.route('/api/delete-class/<int:class_id>', methods=['DELETE'])
-def delete_class(class_id):
-    success, message = delete_class_by_id(class_id)
-    if success:
-        return jsonify({'success': True, 'message': message})
-    else:
-        return jsonify({'success': False, 'message': message})
+
+@app.route('/delete_class', methods=['GET', 'POST'])
+def delete_class():
+    class_id = request.args.get('class_id', type=int)
+    cls = db.session.query(SchoolClass).filter(SchoolClass.id == class_id).first()
+    grade_name = db.session.query(Grade).filter(cls.grade_id == Grade.id).first().name
+    if request.method == 'POST':
+        password_check = request.form.get('password_check')
+        if bcrypt.checkpw(password_check.encode(), current_user.password.encode()):
+            # Xóa các bản ghi liên quan trong các bảng khác nếu cần
+            db.session.query(Student_Schoolclass).filter(Student_Schoolclass.class_id == class_id).delete()
+            db.session.query(Teacher_Schoolclass).filter(Teacher_Schoolclass.class_id == class_id).delete()
+
+            # Xóa lớp khỏi bảng SchoolClass
+            db.session.delete(cls)
+            db.session.commit()
+            flash("Xóa thành công!", 'success')
+            return redirect(url_for('class_management'))
+        else:
+            flash("Sai mật khẩu!", 'error')
+    return render_template("delete_class.html", cls=cls, grade=grade_name)
 
 
 if __name__ == "__main__":

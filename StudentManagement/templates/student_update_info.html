@@ -4,7 +4,7 @@
 
 {% block content %}
 <form style="justify-content: space-evenly" class="user_info"
-      method="POST" action="{{ url_for('student_update_process', student_id=student.id) }}"
+      method="POST" action="{{ url_for('student_update', student_id=student.id) }}"
       enctype="multipart/form-data">
     <div class="card" style="width:15%;height:100%;">
         <img class="card-img-top" src="{{ url_for('static', filename='images/user_image/' ~ student.image_link) }}"

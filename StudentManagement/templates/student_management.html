@@ -13,7 +13,7 @@
 </ul>
 <div style="margin:1% 0;">
     <h2>Thêm học sinh</h2>
-    <form method="post" action="/add_student" enctype="multipart/form-data">
+    <form method="post" action="/student_management" enctype="multipart/form-data">
         <div class="row">
             <div class="col-md-6">
                 <div class="form-group">
@@ -41,11 +41,11 @@
                 <div class="form-group">
                     <label for="grade">Đăng kí vào khối</label>
                     <select class="form-control" name="grade" id="grade" required>
-                    {% for grade in grades %}
-                    <option value="{{ grade.id }}">
-                        Khối {{ grade.name }}
-                    </option>
-                    {% endfor %}
+                        {% for grade in grades %}
+                        <option value="{{ grade.id }}">
+                            Khối {{ grade.name }}
+                        </option>
+                        {% endfor %}
                     </select>
                 </div>
             </div>

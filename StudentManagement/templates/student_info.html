@@ -44,9 +44,14 @@
 </div>
 <br>
 <ul style="display:flex;list-style-type:none;justify-content:flex-end;width:96%;">
+    {% if current_user.user_role.name == 'TEACHER' %}
+    <li><a style="color:white;" class="btn background-btn border_btn"
+           href="{{ url_for('teacher_dashboard') }}">Quay lại</a></li>
+    {% else %}
     <li style="margin-right:2%;"><a style="color:white;" class="btn background-btn border_btn"
                                     href="{{ url_for('student_searching') }}">Trang tra cứu</a></li>
     <li><a style="color:white;" class="btn background-btn border_btn"
-           href="{{ url_for('student_update_info', student_id=student.id) }}">Chỉnh sửa</a></li>
+           href="{{ url_for('student_update', student_id=student.id) }}">Chỉnh sửa</a></li>
+    {% endif %}
 </ul>
 {% endblock %}

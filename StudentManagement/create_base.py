@@ -146,7 +146,7 @@ def add_student_db(first_name, last_name, birth_day, gender, phone, email, addre
         db.session.commit()
 
 
-def class_db(name,grade_id,semester_id,teacher_id):
+def class_db(name, grade_id, semester_id, teacher_id, student_count):
     existing_class = db.session.query(SchoolClass).filter(
         and_(
             SchoolClass.name == name,
@@ -160,7 +160,8 @@ def class_db(name,grade_id,semester_id,teacher_id):
         name=name,
         grade_id=grade_id,
         semester_id=semester_id,
-        homeroom_teacher_id=teacher_id
+        homeroom_teacher_id=teacher_id,
+        student_count=student_count
     )
     db.session.add(new_class)
     db.session.commit()

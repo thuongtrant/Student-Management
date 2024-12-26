@@ -3,4 +3,35 @@
 {% block title %} Teacher - Student Management {% endblock %}
 
 {% block content %}
+<br>
+{% if students %}
+<h3 class="text-center">Danh sách học sinh giáo viên chủ nhiệm trong học kì hiện tại</h3>
+<div style="width:65%;margin:auto;">
+    <table class="table table-striped table-secondary table-hover table-bordered">
+        <thead style="--bs-table-bg:#32383e;color:white;border-color:black;">
+        <tr>
+            <th>Số thứ tự</th>
+            <th>Họ và tên đệm</th>
+            <th>Tên</th>
+            <th style="width:20%;"></th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for s in students %}
+        <tr>
+            <td>{{ loop.index }}</td>
+            <td>{{ s.last_name }}</td>
+            <td>{{ s.first_name }}</td>
+            <td style="border:0;">
+                <a style="color:white;" class="btn background-btn border_btn"
+                   href="{{ url_for('student_info', student_id=s.id) }}">Xem thông tin</a>
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<h3 class="text-center">Giáo viên không chủ nhiệm lớp nào trong học kì hiện tại!</h3>
+{% endif %}
 {% endblock %}

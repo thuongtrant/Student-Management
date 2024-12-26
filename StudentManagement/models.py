@@ -81,6 +81,8 @@ class Score_Board(db.Model):
     __tablename__ = 'score_board'
     __table_args__ = {'extend_existing': True}
     id = Column(Integer, primary_key=True, autoincrement=True)
+    student_id = Column(Integer, ForeignKey('student.id'), nullable=False)
+    teacher_schoolclass_id = Column(Integer, ForeignKey('teacher_schoolclass.id'), nullable=False)
     description = Column(String(255), nullable=True)
 
 
@@ -88,10 +90,11 @@ class Score_Board(db.Model):
 class Teacher_Schoolclass(db.Model):
     __tablename__ = 'teacher_schoolclass'
     __table_args__ = {'extend_existing': True}
-    teacher_id = Column(Integer, ForeignKey('teacher.id'), primary_key=True, nullable=False)
-    class_id = Column(Integer, ForeignKey('schoolclass.id'), primary_key=True, nullable=False)
-    semester_id = Column(Integer, ForeignKey('semester.id'), primary_key=True, nullable=False)
-    board_id = Column(Integer, ForeignKey('score_board.id'), nullable=False)
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    teacher_id = Column(Integer, ForeignKey('teacher.id'), nullable=False)
+    class_id = Column(Integer, ForeignKey('schoolclass.id'), nullable=False)
+    semester_id = Column(Integer, ForeignKey('semester.id'), nullable=False)
+    subject_id = Column(Integer, ForeignKey('subject.id'), nullable=False)
     description = Column(String(255), nullable=True)
 
 
@@ -167,7 +170,7 @@ class Rule(db.Model):
     id = Column(Integer, primary_key=True, autoincrement=True)
     so_tuoi_toi_thieu = Column(Integer, nullable=False, default=15)
     so_tuoi_toi_da = Column(Integer, nullable=False, default=18)
-    si_so_toi_thieu = Column(Integer, nullable= False, default=30)
+    si_so_toi_thieu = Column(Integer, nullable=False, default=30)
     si_so_toi_da = Column(Integer, nullable=False, default=50)
 
     def __repr__(self):
