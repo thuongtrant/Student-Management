@@ -495,5 +495,5 @@ with app.app_context():
         student_class_db(i, 3)
     for i in range(174, 196):
         student_class_db(i, 4)
-        for i in range(91, 121):
-            student_class_db(i, 14)
+    #     for i in range(91, 121):
+    #         student_class_db(i, 14)

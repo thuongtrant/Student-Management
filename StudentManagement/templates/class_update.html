@@ -117,18 +117,4 @@
         </button>
     </div>
 </form>
-<!-- JavaScript -->
-<script>
-    function checkHomeroomTeacherChange(homeroom_teacher_id, subject_id) {
-        var selected_teacher_id = document.getElementById("teacher_id_" + subject_id).value;
-        if (selected_teacher_id == homeroom_teacher_id) {
-            return confirm("Giáo viên được chọn là giáo viên chủ nhiệm. Bạn có chắc chắn muốn chọn giáo viên này?");
-        }
-        return true;
-    }
-
-    function confirmTeacherChange() {
-        return confirm("Bạn có chắc chắn muốn lưu thay đổi giáo viên cho lớp này?");
-    }
-</script>
 {% endblock %}

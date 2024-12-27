@@ -2,7 +2,7 @@ from datetime import datetime
 
 import bcrypt
 from flask import flash
-from sqlalchemy import and_, func
+from sqlalchemy import and_, func, or_
 from sqlalchemy.exc import SQLAlchemyError
 
 from StudentManagement import db
@@ -24,10 +24,15 @@ def check_login(username, password):
 def load_students(kw=None, page=1):
     query = (
         Student.query
-        .join(Student_Schoolclass, Student.id == Student_Schoolclass.student_id)
-        .join(SchoolClass, SchoolClass.id == Student_Schoolclass.class_id)
-        .join(Grade, Grade.id == SchoolClass.grade_id)
-        .filter(SchoolClass.semester_id == get_present_semester().id)
+        .outerjoin(Student_Schoolclass, Student.id == Student_Schoolclass.student_id)
+        .outerjoin(SchoolClass, SchoolClass.id == Student_Schoolclass.class_id)
+        .outerjoin(Grade, Grade.id == SchoolClass.grade_id)
+        .filter(
+            or_(
+                SchoolClass.semester_id == get_present_semester().id,
+                Student_Schoolclass.student_id == None
+            )
+        )
     )
 
     # Lọc theo từ khóa nếu có
@@ -338,13 +343,8 @@ def get_unassigned_students(grade_id):
 
 
 # Hàm thêm lớp học mới
-def create_new_class(grade_id, homeroom_teacher_id, student_count, description):
+def create_new_class(grade_id, homeroom_teacher_id, description):
     try:
-        quy_dinh = Rule.query.first()
-        if student_count > quy_dinh.si_so_toi_da or student_count < quy_dinh.si_so_toi_thieu:
-            flash(f'Sĩ số lớp không được vượt quá {quy_dinh.si_so_toi_da} hay nhỏ hơn {quy_dinh.si_so_toi_thieu}',
-                  'error')
-        else:
             semester = get_present_semester()
 
             # Lấy danh sách các lớp hiện tại trong học kỳ và kiểm tra tên lớp đã tồn tại
@@ -369,7 +369,7 @@ def create_new_class(grade_id, homeroom_teacher_id, student_count, description):
                 grade_id=grade_id,
                 semester_id=semester.id,
                 homeroom_teacher_id=homeroom_teacher_id,
-                student_count=student_count,
+                student_count=0,
                 description=description
             )
             db.session.add(new_class)
@@ -549,6 +549,128 @@ def set_class_from_new(grade_id):
     # Phân học sinh vào các lớp đã tạo
     add_students_to_classes(grade_id, unassigned_students, created_classes, max_students, min_students)
 
+def set_class_from_old(grade_id):
+    previous_semester = get_previous_semester()
+    present_semester = get_present_semester()
+
+    old_classes = db.session.query(SchoolClass).filter(
+        and_(
+            SchoolClass.semester_id == previous_semester.id,
+            SchoolClass.grade_id == grade_id-1
+        )
+    ).all()
+
+    for old_class in old_classes:
+        existing_class = db.session.query(SchoolClass).filter(
+            and_(
+                SchoolClass.semester_id == present_semester.id,
+                SchoolClass.grade_id == old_class.grade_id+1,
+                SchoolClass.name == old_class.name
+            )
+        ).first()
+        current_class = existing_class
+        if not existing_class:
+            teacher_user = get_teacher_nonehr().pop(0)  # Trả về (Teacher, User)
+            homeroom_teacher = teacher_user[0]  # Teacher là phần tử đầu tiên của tuple
+            current_class = create_new_class(grade_id,homeroom_teacher.id,'')
+        old_students = db.session.query(Student) \
+            .join(Student_Schoolclass, Student_Schoolclass.student_id == Student.id) \
+            .filter(Student_Schoolclass.class_id == old_class.id).all()
+        for old_student in old_students:
+            new_schoolclass = Student_Schoolclass(
+                student_id=old_student.id,
+                class_id=current_class.id,
+            )
+            current_class.student_count += 1
+            db.session.add(new_schoolclass)
+            db.session.commit()
+
+    # # Kiểm tra học kỳ hiện tại và lấy semester_id thích hợp
+    # if present_semester.name == 2:
+    #     # Học kỳ 2: Lấy semester_id cũ (tức là học kỳ trước)
+    #     previous_semester = db.session.query(Semester).filter(Semester.id != present_semester.id).first()
+    # elif present_semester.name == 1 and (grade.name == 11 or grade.name == 12):
+    #     # Học kỳ 1 của khối 11, 12: Sử dụng semester_id cũ và tăng grade lên 1
+    #     previous_semester = present_semester
+    # else:
+    #     flash("Không có logic phù hợp cho học kỳ và khối lớp này!", 'error')
+    #     return
+    #
+    # # Lấy danh sách lớp trong học kỳ cũ
+    # existing_classes = db.session.query(SchoolClass).filter(
+    #     SchoolClass.semester_id == previous_semester.id,
+    #     SchoolClass.grade_id == grade_id
+    # ).all()
+    #
+    # # Kiểm tra có lớp nào cũ không
+    # if not existing_classes:
+    #     flash("Không có lớp cũ trong học kỳ trước!", 'error')
+    #     return
+    #
+    # # Lấy danh sách học sinh chưa phân lớp
+    # unassigned_students = get_unassigned_students(grade_id)
+    # rules = db.session.query(Rule).first()
+    # min_students = rules.si_so_toi_thieu
+    # max_students = rules.si_so_toi_da
+    #
+    # # Nếu số học sinh chưa phân lớp < 30, phân bổ đều vào các lớp hiện có
+    # if len(unassigned_students) < 30:
+    #     add_students_to_classes(grade_id, unassigned_students, existing_classes, max_students, min_students)
+    #     flash("Học sinh được phân bổ vào các lớp có sẵn.", 'info')
+    #     return
+    #
+    # # Nếu không, tính số lớp cần tạo
+    # unassigned_students_count = len(unassigned_students)
+    # total_classes_needed = unassigned_students_count // min_students  # Số lớp cần thiết theo min_students
+    #
+    # # Sắp xếp danh sách học sinh
+    # unassigned_students = sorted(unassigned_students, key=lambda x: x.first_name)
+    #
+    # created_classes = []  # Danh sách các lớp mới sẽ được tạo
+    #
+    # for school_class in existing_classes:
+    #     # Kiểm tra xem lớp có tồn tại chưa
+    #     if not db.session.query(SchoolClass).filter(
+    #             SchoolClass.grade_id == (grade_id + 1) if present_semester.name == 1 else grade_id,
+    #             SchoolClass.semester_id == present_semester.id,
+    #             SchoolClass.name == school_class.name).first():
+    #         # Tạo lớp mới nếu chưa tồn tại
+    #         new_class = SchoolClass(
+    #             name=school_class.name,
+    #             grade_id=grade_id + 1 if present_semester.name == 1 else grade_id,
+    #             semester_id=present_semester.id,
+    #             homeroom_teacher_id=school_class.homeroom_teacher_id,
+    #             student_count=0
+    #         )
+    #         db.session.add(new_class)
+    #         created_classes.append(new_class)
+    #
+    #         # Sao chép danh sách học sinh vào lớp mới
+    #         for student_assignment in school_class.student_schoolclass:
+    #             new_assignment = Student_Schoolclass(student_id=student_assignment.student_id, class_id=new_class.id)
+    #             db.session.add(new_assignment)
+    #
+    #         # Sao chép giáo viên chủ nhiệm vào lớp mới
+    #         new_teacher_schoolclass = Teacher_Schoolclass(
+    #             teacher_id=school_class.homeroom_teacher_id,
+    #             class_id=new_class.id,
+    #             semester_id=present_semester.id,
+    #             subject_id=school_class.teacher_schoolclass[0].subject_id
+    #         )
+    #         db.session.add(new_teacher_schoolclass)
+    #
+    #     db.session.commit()
+    #
+    # # Tạo lớp mới nếu cần
+    # if len(unassigned_students) >= 30:
+    #     created_classes += create_new_classes(grade_id, total_classes_needed)
+    #
+    # # Phân học sinh vào các lớp đã tạo (bao gồm cả lớp cũ và lớp mới)
+    # add_students_to_classes(grade_id, unassigned_students, created_classes, max_students, min_students)
+    #
+    # flash("Lớp học và học sinh đã được phân bổ!", 'success')
+    # return existing_classes + created_classes  # Trả về danh sách lớp cũ + lớp mới
+
 
 # Tạo lớp mới và phân toàn bộ học sinh
 def add_classes_auto(grade_id):
@@ -565,10 +687,10 @@ def add_classes_auto(grade_id):
     # Xử lý theo logic học kỳ và khối
     if present_semester.name == 2:
         # Học kỳ 2: Tạo lớp mới dựa trên dữ liệu cũ
-        # set_class_from_old(grade_id)
+        set_class_from_old(grade_id)
         return
     elif (present_semester.name == 1 and (grade.name == 11 or grade.name == 12)):
-        # set_class_from_old(grade_id)
+        set_class_from_old(grade_id)
         return
     else:
         # Khối 10 hoặc học sinh mới, tạo lớp hoàn toàn mới

@@ -142,6 +142,7 @@ def test_password():
 @app.route('/student_management', methods=['GET', 'POST'])
 @login_required
 def student_management():
+    grades=db.session.query(Grade).all()
     if request.method == 'POST':
         first_name = request.form.get('first_name')
         last_name = request.form.get('last_name')
@@ -162,10 +163,11 @@ def student_management():
             # Lấy năm hiện tại (int)
             current_year = int(datetime.now().year)
 
+            quy_dinh = db.session.query(Rule).first()
             # Lấy năm từ birth_date (int)
             birth_year = int(birth_date.split('-')[0])  # Tách năm từ chuỗi "yyyy-mm-dd"
-            if current_year - birth_year < 15:
-                flash("Học sinh chưa đạt độ tuổi yêu cầu!", 'error')
+            if current_year - birth_year < quy_dinh.so_tuoi_toi_thieu or current_year - birth_year > quy_dinh.so_tuoi_toi_da:
+                flash("Học sinh sai độ tuổi yêu cầu!", 'error')
             else:
                 phone = request.form.get('phone')
                 gender = request.form.get('gender')
@@ -188,7 +190,7 @@ def student_management():
                 db.session.commit()
                 flash("Thêm thành công!", 'success')
                 send_mail(email, last_name, first_name)
-    return render_template('student_management.html')
+    return render_template('student_management.html', grades=grades)
 
 
 # Tra cứu học sinh
@@ -411,11 +413,10 @@ def class_management():
     if request.method == 'POST':
         # Lấy dữ liệu từ form
         grade = request.form.get('class_grade')
-        student_count = int(request.form.get('student_count'))
         description = request.form.get('description')
         teacher_id = request.form.get('teacher_id')
 
-        create_new_class(grade, teacher_id, student_count, description)
+        create_new_class(grade, teacher_id, description)
         return redirect(url_for('class_management'))
     grades = db.session.query(Grade).all()
     classes = get_all_classes_this_semester()
@@ -440,14 +441,23 @@ def class_update():
     teacher_map = {assignment.subject_id: assignment.teacher_id for assignment in teacher_assignments}
 
     if request.method == 'POST':
+        # Xử lý thay đổi giáo viên chủ nhiệm
+        new_homeroom_teacher_id = request.form.get('homeroom_teacher_id')
+        if new_homeroom_teacher_id:
+            new_homeroom_teacher_id = int(new_homeroom_teacher_id)
+            if new_homeroom_teacher_id != homeroom_teacher_id:
+                flash("Bạn đã thay đổi giáo viên chủ nhiệm. Vui lòng xác nhận.", "warning")
+                cls.homeroom_teacher_id = new_homeroom_teacher_id
+
+        # Xử lý cập nhật giáo viên các môn học
         for s in subjects:
             selected_teacher_id = request.form.get(f'teacher_id_{s.id}')
             if selected_teacher_id:
                 selected_teacher_id = int(selected_teacher_id)
 
-                # Kiểm tra xem giáo viên được chọn có phải là giáo viên chủ nhiệm
+                # Kiểm tra không cho phép giáo viên chủ nhiệm dạy môn khác
                 if selected_teacher_id == homeroom_teacher_id:
-                    flash(f"Giáo viên được chọn cho môn {s.name} là giáo viên chủ nhiệm. Vui lòng xác nhận.", "warning")
+                    flash(f"Giáo viên được chọn cho môn {s.name} là giáo viên chủ nhiệm. Vui lòng chọn giáo viên khác.", "warning")
                     return render_template(
                         'class_update.html',
                         cls=cls,
@@ -457,10 +467,6 @@ def class_update():
                         teachers=teachers,
                         students_nullclass=students_nullclass,
                         teacher_map=teacher_map,
-                        confirm_teacher_change=True,
-                        subject_name=s.name,
-                        teacher_id=selected_teacher_id,
-                        subject_id=s.id
                     )
 
                 # Cập nhật hoặc tạo mới phân công giáo viên cho môn học
@@ -479,28 +485,12 @@ def class_update():
                         subject_id=s.id
                     )
                     db.session.add(new_assignment)
-                    existing_assignment = new_assignment  # Cập nhật lại `existing_assignment` với assignment mới
-
-                # Thêm bảng điểm cho học sinh nếu chưa có
-                for student in students:
-                    existing_score_board = db.session.query(Score_Board).filter(
-                        Score_Board.student_id == student.id,
-                        Score_Board.teacher_schoolclass_id == existing_assignment.id
-                    ).first()
-
-                    if not existing_score_board:
-                        new_score_board = Score_Board(
-                            student_id=student.id,
-                            teacher_schoolclass_id=existing_assignment.id
-                        )
-                        db.session.add(new_score_board)
 
         # Commit các thay đổi vào cơ sở dữ liệu
         db.session.commit()
         flash("Thông tin giáo viên và bảng điểm đã được cập nhật thành công.", "success")
         return redirect(url_for('class_update', class_id=class_id))
 
-    # Render lại trang
     return render_template(
         'class_update.html',
         cls=cls,
@@ -510,9 +500,7 @@ def class_update():
         teachers=teachers,
         students_nullclass=students_nullclass,
         teacher_map=teacher_map,
-        confirm_teacher_change=False
     )
-
 
 
 @app.route('/delete_class', methods=['GET', 'POST'])
